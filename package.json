@@ -1,0 +1,43 @@
+{
+  "name": "wms-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "REST API for warehouse inventory, stock movements, purchasing, transfers and user access.",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/atiq296/WMS-Backend.git"
+  },
+  "keywords": [
+    "wms",
+    "warehouse",
+    "warehouse-management-system",
+    "express"
+  ],
+  "author": "Atique (ETD-3)",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/atiq296/WMS-Backend/issues"
+  },
+  "homepage": "https://github.com/atiq296/WMS-Backend#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "helmet": "^8.1.0",
+    "hpp": "^0.2.3",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.1",
+    "msnodesqlv8": "^5.2.3",
+    "mssql": "^12.5.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}
