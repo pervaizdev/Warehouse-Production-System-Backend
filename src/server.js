@@ -1,8 +1,5 @@
 /**
  * server.js — Entry Point
- * 
- * WHY separate from app.js?
- * - app.js creates and configures the Express app (middleware, routes, error handling)
  * - server.js starts listening on a port
  * - This separation lets you import `app` in tests without actually starting the server
  * - It also keeps startup tasks (schedulers, cron jobs) isolated here
@@ -19,12 +16,10 @@ app.listen(PORT, "0.0.0.0", () => {
   console.log(`📦 Environment: ${process.env.NODE_ENV || "development"}`);
 
   // ── Startup Tasks ──────────────────────────────────────
-  // Add schedulers/cron jobs here as the project grows
-  // Example: const startInventorySync = require("./schedulers/inventorySync");
-  //          startInventorySync();
-  
+  // schedulers/cron jobs can be added here
+ 
   // FIX: mssql/msnodesqlv8 native driver on Node 24 can cause the event loop to exit
   // prematurely when only an HTTP server handle is active. This dummy interval
-  // ensures the event loop stays alive. (Dome stays alive because of its cron schedulers).
+  // ensures the event loop stays alive.
   setInterval(() => {}, 1000 * 60 * 60);
 });

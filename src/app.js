@@ -4,7 +4,7 @@
  * This file does 3 things:
  * 1. Creates the Express app
  * 2. Applies middleware (security, parsing, logging)
- * 3. Mounts all routes via a single import (no 40+ require statements like Dome!)
+ * 3. Mounts all routes via a single import 
  * 
  * PATTERN: Middleware order matters!
  * 1. Security headers (helmet) — first, so every response gets secure headers
@@ -49,16 +49,16 @@ app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
 // ── Request Logging ──────────────────────────────────────
 // morgan "dev" format: :method :url :status :response-time ms
-// In production, switch to "combined" for full Apache-style logs
+// switch to "combined" for full Apache-style logs
 app.use(morgan("dev"));
 
 // ── Routes ───────────────────────────────────────────────
-// Single function mounts ALL module routes — this is the key difference from Dome
-// No more 40+ require() statements here!
+// Single function mounts ALL module routes 
+
 mountRoutes(app);
 
 // ── Global Error Handler ─────────────────────────────────
-// MUST be after all routes — Express identifies error handlers by having 4 params (err, req, res, next)
+
 app.use(errorHandler);
 
 module.exports = app;

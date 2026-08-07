@@ -24,6 +24,7 @@ const jwt = require("jsonwebtoken");
 const AuthModel = require("./auth.model");
 const { sendSuccess, sendError } = require("../../utils/response.helper");
 const { JWT_SECRET, JWT_EXPIRES_IN, REFRESH_TOKEN_SECRET, REFRESH_TOKEN_EXPIRES_IN } = require("../../config/app.config");
+const { logActivity } = require("../../utils/activityLogger");
 
 class AuthController {
 
@@ -63,6 +64,16 @@ class AuthController {
       const refreshToken = jwt.sign(payload, REFRESH_TOKEN_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRES_IN });
 
       delete user.Password; // NEVER send passwords back
+
+      // ── Log the Activity ───────────────────────────────────
+      const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+      await logActivity({
+        empId: user.empId,
+        actionType: 'LOGIN',
+        moduleName: 'AUTH',
+        description: 'User logged in successfully',
+        ipAddress: ipAddress
+      });
 
       return sendSuccess(res, { accessToken, refreshToken, user }, "Login successful");
 
@@ -106,6 +117,37 @@ class AuthController {
     } catch (error) {
       console.error("Refresh error:", error);
       return sendError(res, "Failed to refresh token");
+  }
+  }
+  /**
+   * POST /api/auth/logout
+   * 
+   * Logs out the user (server-side tracking/logging).
+   * Note: The client still needs to delete their own tokens from storage.
+   */
+  static async logout(req, res) {
+    try {
+      // In a real application, the user's ID should be in req.user from the authenticateToken middleware.
+      // If we don't have the middleware yet, we can try to decode the token from the header manually just for logging,
+      // or we can expect empId in the body for now.
+      
+      let empId = req.user?.empId || req.body.empId;
+      const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+
+      if (empId) {
+        await logActivity({
+          empId: empId,
+          actionType: 'LOGOUT',
+          moduleName: 'AUTH',
+          description: 'User logged out',
+          ipAddress: ipAddress
+        });
+      }
+
+      return sendSuccess(res, null, "Logged out successfully");
+    } catch (error) {
+      console.error("Logout error:", error);
+      return sendError(res, "Logout failed");
     }
   }
 }

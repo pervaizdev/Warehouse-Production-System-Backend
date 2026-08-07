@@ -18,8 +18,8 @@ const authController = require("./auth.controller");
 router.post("/login", authController.login);
 router.post("/refresh", authController.refresh);
 
-// Protected routes (add authenticateToken middleware when needed)
-// router.post("/logout", authenticateToken, authController.logout);
+// Protected routes (we can add authenticateToken middleware later)
+router.post("/logout", authController.logout);
 // router.get("/me", authenticateToken, authController.getProfile);
 
 module.exports = router;

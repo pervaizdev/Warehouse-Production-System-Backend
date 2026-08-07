@@ -1,22 +1,9 @@
-/**
- * cors.config.js — CORS (Cross-Origin Resource Sharing) Configuration
- * 
- * WHAT IS CORS?
- * Browsers block requests from one domain to another by default (security).
- * Your React frontend at localhost:3000 can't call your Express API at localhost:3001
- * unless the API explicitly says "I allow requests from localhost:3000".
- * 
- * WHY a separate config file?
- * In Dome's app.js, CORS config is mixed with 150+ lines of other setup.
- * Here it's isolated — easy to find, easy to modify when deploying.
- */
+
 
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3001",
-  "http://localhost:5173",   // Vite default
-  // Add your production/staging URLs here:
-  // "https://wms.yourdomain.com",
+  "http://localhost:5173",  
 ];
 
 module.exports = {
