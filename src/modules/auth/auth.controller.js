@@ -23,7 +23,6 @@
 const jwt = require("jsonwebtoken");
 const AuthModel = require("./auth.model");
 const { sendSuccess, sendError } = require("../../utils/response.helper");
-const { JWT_SECRET, JWT_EXPIRES_IN, REFRESH_TOKEN_SECRET, REFRESH_TOKEN_EXPIRES_IN } = require("../../config/app.config");
 const { logActivity } = require("../../utils/activityLogger");
 
 class AuthController {
@@ -41,7 +40,7 @@ class AuthController {
         return sendError(res, "Email and password are required", 400);
       }
 
-      if (!JWT_SECRET || !REFRESH_TOKEN_SECRET) {
+      if (!process.env.JWT_SECRET || !process.env.REFRESH_TOKEN_SECRET) {
         return sendError(res, "Server authentication not configured", 500);
       }
 
@@ -60,8 +59,8 @@ class AuthController {
         sourceDB: user.SourceDB
       };
 
-      const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
-      const refreshToken = jwt.sign(payload, REFRESH_TOKEN_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRES_IN });
+      const accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || "15m" });
+      const refreshToken = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || "7d" });
 
       delete user.Password; // NEVER send passwords back
 
@@ -97,7 +96,7 @@ class AuthController {
       }
 
       // Verify the refresh token
-      jwt.verify(refreshToken, REFRESH_TOKEN_SECRET, (err, decoded) => {
+      jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
         if (err) {
           return sendError(res, "Invalid or expired refresh token", 403);
         }
@@ -110,7 +109,7 @@ class AuthController {
           sourceDB: decoded.sourceDB
         };
 
-        const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+        const accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || "15m" });
 
         return sendSuccess(res, { accessToken }, "Token refreshed successfully");
       });

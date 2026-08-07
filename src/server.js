@@ -9,7 +9,8 @@ const dotenv = require("dotenv");
 dotenv.config(); // Load .env BEFORE anything else uses process.env
 
 const app = require("./app");
-const { PORT } = require("./config/app.config");
+
+const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 WMS Server running on: http://localhost:${PORT}`);

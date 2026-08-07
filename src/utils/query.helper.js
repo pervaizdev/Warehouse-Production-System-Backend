@@ -27,8 +27,6 @@
  *   const { condition, inputs } = buildSearchCondition(req.query.search, ["Name", "Code"]);
  */
 
-const { MAX_PAGE_SIZE, DEFAULT_PAGE_SIZE } = require("../config/app.config");
-
 /**
  * Parse pagination parameters from query string
  * 
@@ -44,13 +42,16 @@ const { MAX_PAGE_SIZE, DEFAULT_PAGE_SIZE } = require("../config/app.config");
  * @returns {{ page: number, limit: number, offset: number }}
  */
 function parsePagination(query = {}) {
+  const defaultSize = process.env.DEFAULT_PAGE_SIZE ? parseInt(process.env.DEFAULT_PAGE_SIZE) : 20;
+  const maxSize = process.env.MAX_PAGE_SIZE ? parseInt(process.env.MAX_PAGE_SIZE) : 100;
+  
   let page = parseInt(query.page) || 1;
-  let limit = parseInt(query.limit) || DEFAULT_PAGE_SIZE;
+  let size = parseInt(query.limit) || defaultSize;
+  let limit = Math.min(size, maxSize);
 
   // Safety: clamp values
   if (page < 1) page = 1;
-  if (limit < 1) limit = DEFAULT_PAGE_SIZE;
-  if (limit > MAX_PAGE_SIZE) limit = MAX_PAGE_SIZE;
+  if (limit < 1) limit = defaultSize;
 
   const offset = (page - 1) * limit;
 

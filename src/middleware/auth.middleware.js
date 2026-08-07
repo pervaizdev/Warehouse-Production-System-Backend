@@ -15,7 +15,7 @@
  */
 
 const jwt = require("jsonwebtoken");
-const { JWT_SECRET } = require("../config/app.config");
+const { sendError } = require("../utils/response.helper");
 
 function authenticateToken(req, res, next) {
   // Extract token from "Bearer <token>" header or query parameter
@@ -29,7 +29,7 @@ function authenticateToken(req, res, next) {
     });
   }
 
-  if (!JWT_SECRET) {
+  if (!process.env.JWT_SECRET) {
     console.error("⚠️ JWT_SECRET is not configured in .env");
     return res.status(500).json({
       success: false,
@@ -38,14 +38,21 @@ function authenticateToken(req, res, next) {
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+      if (err) {
+        return res.status(403).json({
+          success: false,
+          message: "Invalid or expired token",
+        });
+      }
 
-    // Normalize identity fields 
-    decoded.empId = String(decoded.empId || decoded.userId || "unknown");
-    decoded.fullName = decoded.fullName || decoded.firstName || decoded.email || "Unknown User";
+      // Normalize identity fields 
+      decoded.empId = String(decoded.empId || decoded.userId || "unknown");
+      decoded.fullName = decoded.fullName || decoded.firstName || decoded.email || "Unknown User";
 
-    req.user = decoded; // Now available in all controllers as req.user
-    next();
+      req.user = decoded; // Now available in all controllers as req.user
+      next();
+    });
   } catch (err) {
     return res.status(403).json({
       success: false,
