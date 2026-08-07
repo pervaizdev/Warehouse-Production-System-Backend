@@ -1,24 +1,20 @@
 /**
  * auth.model.js — Authentication Database Queries
  * 
- * MODEL RULES:
- * 1. ONLY database logic belongs here (SELECT, INSERT, UPDATE, DELETE).
- * 2. Return clean data objects to the controller.
- * 3. Never handle req/res directly in this file.
+ *
  */
 
-const { sql, getPool } = require("../../database/connection");
+const { sql, poolPromise } = require("../../database/connection");
 
 class AuthModel {
   /**
-   * Find a user by their email address in the HCM_GMS database.
-   * Visole DB is excluded as Visole employees do not use WMS.
+  
    * 
    * @param {string} email 
    * @returns {Promise<object|null>}
    */
   static async findUserByEmail(email) {
-    const pool = await getPool("primary");
+    const pool = await poolPromise;
     
     const query = `
       SELECT 

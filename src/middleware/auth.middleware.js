@@ -40,7 +40,7 @@ function authenticateToken(req, res, next) {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
 
-    // Normalize identity fields (same as Dome for compatibility)
+    // Normalize identity fields 
     decoded.empId = String(decoded.empId || decoded.userId || "unknown");
     decoded.fullName = decoded.fullName || decoded.firstName || decoded.email || "Unknown User";
 

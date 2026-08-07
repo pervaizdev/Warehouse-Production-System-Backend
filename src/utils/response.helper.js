@@ -1,12 +1,6 @@
 /**
  * response.helper.js — Standardized API Responses
  * 
- * WHY standardize responses?
- * In Dome, every controller formats responses differently:
- *   - Some: { success: true, data: [...] }
- *   - Some: { success: true, result: [...] }  
- *   - Some: { status: "ok", records: [...] }
- * 
  * This makes frontend code messy — you never know which format to expect.
  * With helpers, EVERY response follows the same shape:
  * 

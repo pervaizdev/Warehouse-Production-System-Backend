@@ -1,4 +1,4 @@
-const { sql, getPool } = require("../database/connection");
+const { sql, poolPromise } = require("../database/connection");
 const logger = require("./logger");
 
 /**
@@ -14,7 +14,7 @@ const logger = require("./logger");
  */
 async function logActivity({ empId, actionType, moduleName, entityId = null, description = null, ipAddress = null }) {
   try {
-    const pool = await getPool("primary");
+    const pool = await poolPromise;
     const query = `
       INSERT INTO wms_activity_logs (emp_id, action_type, module_name, entity_id, description, ip_address)
       VALUES (@empId, @actionType, @moduleName, @entityId, @description, @ipAddress)

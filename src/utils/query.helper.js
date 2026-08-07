@@ -6,15 +6,10 @@
  * This is what makes your frontend "instantly render in a smooth professional way."
  * 
  * ═══════════════════════════════════════════════════════════════
- * LESSON: Server-Side Pagination vs Client-Side Pagination
+ *Server-Side Pagination vs Client-Side Pagination
  * ═══════════════════════════════════════════════════════════════
+
  * 
- * ❌ BAD (what many Dome controllers do):
- *    SELECT * FROM Items                          ← Fetches ALL 50,000 rows
- *    Frontend: data.slice(0, 20)                  ← Shows 20, wasted 49,980
- *    Problem: Slow API, high memory, slow render
- * 
- * ✅ GOOD (what we'll do):
  *    SELECT * FROM Items
  *    WHERE Name LIKE '%search%'                   ← Filter in DB (fast index scan)
  *    ORDER BY CreatedAt DESC
