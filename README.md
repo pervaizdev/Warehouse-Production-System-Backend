@@ -1,6 +1,6 @@
 # WMS-Backend
 
-> Warehouse Management System — Backend API (SAP B1 based)
+> Warehouse Management System — Backend API 
 
 ## Quick Start
 
