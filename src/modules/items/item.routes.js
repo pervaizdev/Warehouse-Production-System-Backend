@@ -1,7 +1,7 @@
 const router = require("express").Router;
 const itemController=require("./item.controller");
 
-router.get("/get",itemController.getitems());
+router.get("/inventory/dashboard",itemController.getInventoryDashboard());
 
 
 module.exports=router;

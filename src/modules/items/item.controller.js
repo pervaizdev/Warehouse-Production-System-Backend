@@ -6,10 +6,10 @@ const { logActivity } = require("../../utils/activityLogger");
 
 class ItemController{
 
-    static async getitems(req,res){
+    static async getInventoryDashboard(req,res){
 
         try{
-            const items=await itemModel.getitems()
+            const items=await itemModel.getInventoryDashboard()
             sendSuccess(res,items,"items fetched successfully");
 
         }catch(err){
