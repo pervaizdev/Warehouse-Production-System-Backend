@@ -1,24 +1,9 @@
-/**
- * auth.middleware.js — JWT Authentication
- * 
- * HOW JWT AUTH WORKS (quick lesson):
- * 
- * 1. User logs in → server creates a JWT token containing user info (empId, name, role)
- * 2. Frontend stores the token and sends it with every request:
- *    Headers: { Authorization: "Bearer eyJhbGciOi..." }
- * 3. This middleware intercepts EVERY protected request and:
- *    a. Extracts the token from the header
- *    b. Verifies it wasn't tampered with (jwt.verify)
- *    c. Decodes the user info and attaches it to req.user
- *    d. If invalid → 401/403 response, request never reaches your controller
- * 
- */
+
 
 const jwt = require("jsonwebtoken");
-const { sendError } = require("../utils/response.helper");
+
 
 function authenticateToken(req, res, next) {
-  // Extract token from "Bearer <token>" header or query parameter
   const authHeader = req.headers["authorization"];
   const token = (authHeader && authHeader.split(" ")[1]) || req.query.token;
 
@@ -29,8 +14,8 @@ function authenticateToken(req, res, next) {
     });
   }
 
-  if (!process.env.JWT_SECRET) {
-    console.error("⚠️ JWT_SECRET is not configured in .env");
+  if (!process.env.JWT_ACCESS_SECRET) {
+    console.error("⚠️ JWT_ACCESS_SECRET is not configured in .env");
     return res.status(500).json({
       success: false,
       message: "Server authentication not configured",
@@ -38,7 +23,7 @@ function authenticateToken(req, res, next) {
   }
 
   try {
-    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    jwt.verify(token, process.env.JWT_ACCESS_SECRET, (err, decoded) => {
       if (err) {
         return res.status(403).json({
           success: false,

@@ -1,26 +1,41 @@
-/**
- * server.js — Entry Point
- * - server.js starts listening on a port
- * - This separation lets you import `app` in tests without actually starting the server
- * - It also keeps startup tasks (schedulers, cron jobs) isolated here
- */
-
+const express = require("express");
 const dotenv = require("dotenv");
-dotenv.config(); // Load .env BEFORE anything else uses process.env
+dotenv.config();
 
-const app = require("./app");
+const errorHandler = require("./middleware/error.middleware");
+const applySecurityAndMiddlewares = require("./security/security.setup");
+const authRoutes = require("./routes/Auth/auth.route");
+const app = express();
+
+applySecurityAndMiddlewares(app);
+
+// ── Custom Request Logger ────────────────────────────────
+app.use((req, res, next) => {
+  console.log(`\n--- 📥 NEW REQUEST: [${req.method}] ${req.url} ---`);
+  if (Object.keys(req.params).length > 0) console.log("Params:", req.params);
+  if (Object.keys(req.query).length > 0) console.log("Query:", req.query);
+  if (Object.keys(req.body).length > 0) {
+    const safeBody = { ...req.body };
+    if (safeBody.password) safeBody.password = "***HIDDEN***";
+    console.log("Body:", safeBody);
+  }
+  console.log("------------------------------------------");
+  next();
+});
+app.get("/api/health", (req, res) => {
+  res.json({ 
+    success: true, 
+    message: "WMS API is running",
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.use("/api/auth", authRoutes);
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 WMS Server running on: http://localhost:${PORT}`);
-  console.log(`📦 Environment: ${process.env.NODE_ENV || "development"}`);
-
-  // ── Startup Tasks ──────────────────────────────────────
-  // schedulers/cron jobs can be added here
- 
-  // FIX: mssql/msnodesqlv8 native driver on Node 24 can cause the event loop to exit
-  // prematurely when only an HTTP server handle is active. This dummy interval
-  // ensures the event loop stays alive.
   setInterval(() => {}, 1000 * 60 * 60);
 });
