@@ -29,18 +29,9 @@ async function runQueries() {
     console.table(capacity.recordset);
 
     console.log("\n--- Receipt Mapping (IGN1) ---");
-    const ign1 = await sql.query(`SELECT TOP 2 DocEntry, BaseType, BaseEntry, ItemCode, Quantity FROM LDS_LIVE.dbo.IGN1 WHERE BaseType = 202;`);
-    console.table(ign1.recordset);
-
-    console.log("\n--- Multiple machines check ---");
-    const multiMachine = await sql.query(`
-      SELECT DocEntry, COUNT(DISTINCT ItemCode) as MachineCount 
-      FROM LDS_LIVE.dbo.WOR1 
-      WHERE ItemType = 290 
-      GROUP BY DocEntry 
-      HAVING COUNT(DISTINCT ItemCode) > 1
-    `);
-    console.log("Orders with >1 machine:", multiMachine.recordset.length);
+    console.log("\n--- ORCJ Capacity with Dates ---");
+    const orcj = await sql.query(`SELECT TOP 10 ResCode, CapDate, Capacity FROM LDS_LIVE.dbo.ORCJ WHERE Capacity > 0`);
+    console.table(orcj.recordset);
 
   } catch (err) {
     console.error("SQL Error:", err);
