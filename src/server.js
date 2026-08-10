@@ -5,6 +5,7 @@ dotenv.config();
 const errorHandler = require("./middleware/error.middleware");
 const applySecurityAndMiddlewares = require("./security/security.setup");
 const authRoutes = require("./routes/Auth/auth.route");
+const productionRoutes = require('./routes/MachineEfficiency/efficiency.route');
 const app = express();
 
 applySecurityAndMiddlewares(app);
@@ -12,9 +13,9 @@ applySecurityAndMiddlewares(app);
 // ── Custom Request Logger ────────────────────────────────
 app.use((req, res, next) => {
   console.log(`\n--- 📥 NEW REQUEST: [${req.method}] ${req.url} ---`);
-  if (Object.keys(req.params).length > 0) console.log("Params:", req.params);
-  if (Object.keys(req.query).length > 0) console.log("Query:", req.query);
-  if (Object.keys(req.body).length > 0) {
+  if (req.params && Object.keys(req.params).length > 0) console.log("Params:", req.params);
+  if (req.query && Object.keys(req.query).length > 0) console.log("Query:", req.query);
+  if (req.body && Object.keys(req.body).length > 0) {
     const safeBody = { ...req.body };
     if (safeBody.password) safeBody.password = "***HIDDEN***";
     console.log("Body:", safeBody);
@@ -31,6 +32,7 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/machine-efficiency", productionRoutes);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3001;

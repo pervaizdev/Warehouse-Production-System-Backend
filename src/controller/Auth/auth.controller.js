@@ -16,9 +16,13 @@ function generateAccessToken(payload) {
  */
 function generateRefreshToken(payload) {
   // Add a type to differentiate if ever needed
-  return jwt.sign({ ...payload, type: "refresh" }, process.env.JWT_REFRESH_SECRET, {
-    expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || "7d",
-  });
+  return jwt.sign(
+    { ...payload, type: "refresh" },
+    process.env.JWT_REFRESH_SECRET,
+    {
+      expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || "7d",
+    },
+  );
 }
 
 /**
@@ -39,10 +43,7 @@ async function login(req, res) {
     const pool = await poolPromise;
 
     // STEP 2: Find the active employee by email (Parameterized)
-    const empResult = await pool
-      .request()
-      .input("email", email)
-      .query(`
+    const empResult = await pool.request().input("email", email).query(`
         SELECT ID, EmpID, OfficeEmail
         FROM HCM_GMS.dbo.MstEmployee
         WHERE OfficeEmail = @email
@@ -60,9 +61,7 @@ async function login(req, res) {
     const employee = empResult.recordset[0];
 
     // STEP 4: Get PassCode from MstUsers (Parameterized)
-    const userResult = await pool
-      .request()
-      .input("empId", employee.EmpID)
+    const userResult = await pool.request().input("empId", employee.EmpID)
       .query(`
         SELECT PassCode
         FROM HCM_GMS.dbo.MstUsers
@@ -80,13 +79,16 @@ async function login(req, res) {
 
     // STEP 5: Compare password
     let isMatch = false;
-    
+
     // Check if the passcode in the DB looks like a bcrypt hash (starts with $2a$ or $2b$)
-    if (passCodeFromDb && (passCodeFromDb.startsWith("$2a$") || passCodeFromDb.startsWith("$2b$"))) {
+    if (
+      passCodeFromDb &&
+      (passCodeFromDb.startsWith("$2a$") || passCodeFromDb.startsWith("$2b$"))
+    ) {
       isMatch = await bcrypt.compare(password, passCodeFromDb);
     } else {
       // Legacy plaintext comparison
-      isMatch = (password === passCodeFromDb);
+      isMatch = password === passCodeFromDb;
     }
 
     if (!isMatch) {
@@ -101,7 +103,6 @@ async function login(req, res) {
       id: employee.ID,
       empId: employee.EmpID,
       email: employee.OfficeEmail,
-      role: 'Warehouse Manager'
     };
 
     const accessToken = generateAccessToken(jwtPayload);
@@ -122,7 +123,6 @@ async function login(req, res) {
       message: "Login successful",
       data: {
         accessToken,
-      
       },
     });
   } catch (error) {
@@ -162,10 +162,7 @@ async function refresh(req, res) {
 
     // 5 & 6: Verify employee is still active
     const pool = await poolPromise;
-    const empResult = await pool
-      .request()
-      .input("id", decoded.id)
-      .query(`
+    const empResult = await pool.request().input("id", decoded.id).query(`
         SELECT ID, EmpID, OfficeEmail
         FROM HCM_GMS.dbo.MstEmployee
         WHERE ID = @id
@@ -188,7 +185,6 @@ async function refresh(req, res) {
       id: employee.ID,
       empId: employee.EmpID,
       email: employee.OfficeEmail,
-      role: 'Warehouse Manager'
     };
 
     const newAccessToken = generateAccessToken(newPayload);
@@ -235,17 +231,136 @@ function logout(req, res) {
 /**
  * GET /api/auth/me
  */
-function getMe(req, res) {
-  // req.user is populated by authenticateToken middleware
-  return res.status(200).json({
-    success: true,
-    data: {
-      empId: req.user.empId,
-      email: req.user.email,
-      role: req.user.role,
-      id: req.user.id
-    },
-  });
+async function getMe(req, res) {
+  try {
+    const pool = await poolPromise;
+    const empResult = await pool.request().input("empId", req.user.empId)
+      .query(`
+   SELECT
+    ID,
+    EmpID,
+    SBOEmpCode,
+    ImgPath,
+    FirstName,
+    MiddleName,
+    LastName,
+
+    Manager,
+    RoleID,
+    RoleName,
+
+    DesignationID,
+    DesignationName,
+
+    PositionID,
+    PositionName,
+
+    DepartmentID,
+    DepartmentName,
+
+    Location,
+    LocationName,
+
+    BranchID,
+    BranchName,
+
+    HomePhone,
+    OfficeEmail,
+
+    FatherName,
+    DOB,
+    GenderID,
+    GenderLOVType,
+    BloodGroupID,
+    BloodGroupLOVType,
+    MotherName,
+
+    MartialStatusID,
+    MartialStatusLOVType,
+
+    BasicSalary,
+
+    EmpCalender,
+    SalaryCurrency,
+    PaymentMethod,
+
+    ReportToID,
+
+    EmployeeContractType,
+    HrBaseCalendar,
+    WindowsLogin,
+    EmployeeGrade,
+    PreEmpMonth,
+
+    WorkPermitRef,
+    WorkPermitExpiryDate,
+    ContractExpiryDate,
+
+    PayrollID,
+    PayrollName,
+
+    JoiningDate,
+    ConfirmationDate,
+    ResignDate,
+    ContrStartDate,
+    ContrEnddate,
+
+    flgSocialSecurity,
+    flgGratuity,
+    flgActive,
+    flgUser,
+
+    GratuityName,
+    PaymentMode,
+    EffectiveDate,
+    PercentagePaid,
+
+    AccountTitle,
+    BankName,
+    BankBranch,
+    AccountNo,
+    AccountType,
+
+    flgTax,
+
+    CreateDate,
+    UpdateDate,
+
+    GrossSalary,
+    AllowedAdvance,
+
+    Company,
+    DailyAllowance,
+    BusinessSegment,
+
+    TravelExpense,
+    CashSalary,
+    MedicalAllowance,
+    WorkingAllowance
+
+FROM HCM_GMS.dbo.MstEmployee
+WHERE EmpID = @empId
+  AND flgActive = 1;
+      `);
+
+    if (empResult.recordset.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Employee not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: empResult.recordset[0],
+    });
+  } catch (error) {
+    console.error("GetMe error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
 }
 
 module.exports = {
