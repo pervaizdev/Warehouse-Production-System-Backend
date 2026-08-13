@@ -7,6 +7,7 @@ const applySecurityAndMiddlewares = require("./security/security.setup");
 const authRoutes = require("./routes/Auth/auth.route");
 const productionRoutes = require('./routes/MachineEfficiency/efficiency.route');
 const productionTrendRoutes = require('./routes/ProductionTrend/productionTrend.route');
+const costAnalysisRoutes = require('./routes/costAnalysis.routes');
 const app = express();
 
 applySecurityAndMiddlewares(app);
@@ -35,6 +36,7 @@ app.get("/api/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/machine-efficiency", productionRoutes);
 app.use("/api/production-trend", productionTrendRoutes);
+app.use("/api/cost-analysis", costAnalysisRoutes);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3001;

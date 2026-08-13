@@ -1,0 +1,266 @@
+﻿{
+  "TRACE_ORDER": {
+    "DocEntry": 407,
+    "DocNum": 2662,
+    "ItemCode": "SF000022",
+    "Status": "L",
+    "PlannedQty": 7500,
+    "CmpltQty": 7500,
+    "Warehouse": "04",
+    "PostDate": "2026-08-13T00:00:00.000Z"
+  },
+  "TRACE_WOR1": [
+    {
+      "LineNum": 0,
+      "ItemCode": "RW000019",
+      "ItemType": 4,
+      "PlannedQty": 52.5,
+      "IssuedQty": 52.5,
+      "BaseQty": 0.007,
+      "WareHouse": "15",
+      "IssueType": "M"
+    },
+    {
+      "LineNum": 1,
+      "ItemCode": "RW000087",
+      "ItemType": 4,
+      "PlannedQty": 67.5,
+      "IssuedQty": 67.5,
+      "BaseQty": 0.009,
+      "WareHouse": "15",
+      "IssueType": "M"
+    },
+    {
+      "LineNum": 2,
+      "ItemCode": "RW000007",
+      "ItemType": 4,
+      "PlannedQty": 37.5,
+      "IssuedQty": 37.5,
+      "BaseQty": 0.005,
+      "WareHouse": "15",
+      "IssueType": "M"
+    },
+    {
+      "LineNum": 3,
+      "ItemCode": "RW000043",
+      "ItemType": 4,
+      "PlannedQty": 15,
+      "IssuedQty": 15,
+      "BaseQty": 0.002,
+      "WareHouse": "15",
+      "IssueType": "M"
+    },
+    {
+      "LineNum": 4,
+      "ItemCode": "RT-LC-SAMPLE & Rtest",
+      "ItemType": 290,
+      "PlannedQty": 7.5,
+      "IssuedQty": 7.5,
+      "BaseQty": 0.001,
+      "WareHouse": "15",
+      "IssueType": "M"
+    },
+    {
+      "LineNum": 5,
+      "ItemCode": "RT-FOH-SAMPLE & Rtest",
+      "ItemType": 290,
+      "PlannedQty": 7.5,
+      "IssuedQty": 7.5,
+      "BaseQty": 0.001,
+      "WareHouse": "15",
+      "IssueType": "M"
+    },
+    {
+      "LineNum": 6,
+      "ItemCode": "RT-QC-SAMPLE & Rtest",
+      "ItemType": 290,
+      "PlannedQty": 7.5,
+      "IssuedQty": 7.5,
+      "BaseQty": 0.001,
+      "WareHouse": "15",
+      "IssueType": "M"
+    }
+  ],
+  "TRACE_IGE1": [
+    {
+      "DocEntry": 1592,
+      "ItemCode": "RW000019",
+      "Quantity": 52.5,
+      "Price": 0,
+      "LineTotal": 0,
+      "WhsCode": "15",
+      "StockPrice": 4.92,
+      "AcctCode": "A2103002"
+    },
+    {
+      "DocEntry": 1592,
+      "ItemCode": "RW000087",
+      "Quantity": 67.5,
+      "Price": 0,
+      "LineTotal": 0,
+      "WhsCode": "15",
+      "StockPrice": 0.2736,
+      "AcctCode": "A2103002"
+    },
+    {
+      "DocEntry": 1592,
+      "ItemCode": "RW000007",
+      "Quantity": 37.5,
+      "Price": 0,
+      "LineTotal": 0,
+      "WhsCode": "15",
+      "StockPrice": 8.014987,
+      "AcctCode": "A2103002"
+    },
+    {
+      "DocEntry": 1592,
+      "ItemCode": "RW000043",
+      "Quantity": 15,
+      "Price": 0,
+      "LineTotal": 0,
+      "WhsCode": "15",
+      "StockPrice": 240,
+      "AcctCode": "A2103002"
+    },
+    {
+      "DocEntry": 1592,
+      "ItemCode": "RT-LC-SAMPLE & Rtest",
+      "Quantity": 7.5,
+      "Price": 13.26,
+      "LineTotal": 99.45,
+      "WhsCode": "15",
+      "StockPrice": 13.26,
+      "AcctCode": "A2103002"
+    },
+    {
+      "DocEntry": 1592,
+      "ItemCode": "RT-FOH-SAMPLE & Rtest",
+      "Quantity": 7.5,
+      "Price": 19.85,
+      "LineTotal": 148.875,
+      "WhsCode": "15",
+      "StockPrice": 19.85,
+      "AcctCode": "A2103002"
+    },
+    {
+      "DocEntry": 1592,
+      "ItemCode": "RT-QC-SAMPLE & Rtest",
+      "Quantity": 7.5,
+      "Price": 4.8,
+      "LineTotal": 36,
+      "WhsCode": "15",
+      "StockPrice": 4.8,
+      "AcctCode": "A2103002"
+    }
+  ],
+  "TRACE_IGN1": [
+    {
+      "DocEntry": 913,
+      "ItemCode": "SF000022",
+      "Quantity": 7500,
+      "Price": 0.594887,
+      "LineTotal": 4461.655,
+      "WhsCode": "04",
+      "StockPrice": 0.594887,
+      "AcctCode": "A2103002"
+    }
+  ],
+  "DQ": [
+    {
+      "Cnt": 1
+    }
+  ],
+  "DQ2": [
+    {
+      "Cnt": 0
+    }
+  ],
+  "COUNTS": [
+    {
+      "T": "OWOR",
+      "C": 407
+    },
+    {
+      "T": "WOR1",
+      "C": 5067
+    },
+    {
+      "T": "OIGE",
+      "C": 1593
+    },
+    {
+      "T": "IGE1",
+      "C": 7518
+    },
+    {
+      "T": "OIGN",
+      "C": 913
+    },
+    {
+      "T": "IGN1",
+      "C": 2298
+    },
+    {
+      "T": "ORSC",
+      "C": 80
+    },
+    {
+      "T": "OITM",
+      "C": 1645
+    },
+    {
+      "T": "OJDT",
+      "C": 22139
+    },
+    {
+      "T": "JDT1",
+      "C": 68868
+    },
+    {
+      "T": "OITT",
+      "C": 172
+    },
+    {
+      "T": "ITT1",
+      "C": 2345
+    },
+    {
+      "T": "OBTN",
+      "C": 1732
+    },
+    {
+      "T": "SIVL2",
+      "C": 0
+    },
+    {
+      "T": "IVL2",
+      "C": 6039
+    }
+  ],
+  "EVAL": [
+    {
+      "EvalSystem": "B",
+      "Cnt": 774
+    },
+    {
+      "EvalSystem": "A",
+      "Cnt": 871
+    }
+  ],
+  "OWOR_UDF": [
+    {
+      "COLUMN_NAME": "U_BMR",
+      "DATA_TYPE": "nvarchar"
+    }
+  ],
+  "IGE22_COUNT": [
+    {
+      "C": 970
+    }
+  ],
+  "IGN22_COUNT": [
+    {
+      "C": 42
+    }
+  ]
+}

@@ -108,8 +108,17 @@ exports.getSummary = async (req, res) => {
     if (selectedYear) {
       const prevReq = pool.request();
       const prevQueryFilters = { ...req.query, year: selectedYear - 1 };
-      delete prevQueryFilters.dateFrom;
-      delete prevQueryFilters.dateTo;
+      
+      if (prevQueryFilters.dateFrom) {
+        const prevDateFrom = new Date(prevQueryFilters.dateFrom);
+        prevDateFrom.setFullYear(prevDateFrom.getFullYear() - 1);
+        prevQueryFilters.dateFrom = prevDateFrom.toISOString().split('T')[0];
+      }
+      if (prevQueryFilters.dateTo) {
+        const prevDateTo = new Date(prevQueryFilters.dateTo);
+        prevDateTo.setFullYear(prevDateTo.getFullYear() - 1);
+        prevQueryFilters.dateTo = prevDateTo.toISOString().split('T')[0];
+      }
       
       const prevWhereClause = buildWhereClause(prevQueryFilters, prevReq);
       const prevQuery = `
@@ -269,6 +278,12 @@ exports.getYearComparison = async (req, res) => {
     
     // Determine current year and previous year
     let currentYear = parseInt(req.query.year);
+    if (!currentYear && req.query.dateFrom) {
+      currentYear = new Date(req.query.dateFrom).getFullYear();
+    } else if (!currentYear && req.query.dateTo) {
+      currentYear = new Date(req.query.dateTo).getFullYear();
+    }
+    
     if (!currentYear) {
       const maxYearRes = await pool.request().query(`SELECT MAX(YEAR(DocDate)) AS MaxYear FROM LDS_LIVE.dbo.OIGN`);
       currentYear = maxYearRes.recordset[0]?.MaxYear || new Date().getFullYear();
@@ -278,6 +293,8 @@ exports.getYearComparison = async (req, res) => {
     // Fetch current year monthly data
     const curReq = pool.request();
     const curFilters = { ...req.query, year: currentYear };
+    delete curFilters.dateFrom;
+    delete curFilters.dateTo;
     const curWhere = buildWhereClause(curFilters, curReq);
     const curQuery = `
       SELECT MONTH(h.DocDate) AS MonthNum, ISNULL(SUM(i.Quantity), 0) AS TotalQty

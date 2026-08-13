@@ -1,0 +1,642 @@
+﻿[
+  {
+    "ResCode": "ALv-FOH-FG",
+    "ResName": "ALVENTri-all items - FOH",
+    "ResType": "O",
+    "ResGrpCod": 2,
+    "StdCost1": 447.18,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "ALv-LC-FG10/21/22/32/33/34",
+    "ResName": "ALVENTri-P Gel + Clot Activator & ALVENTri Gel + Clot Activator",
+    "ResType": "L",
+    "ResGrpCod": 1,
+    "StdCost1": 39.17,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "ALv-LC-FG11/35",
+    "ResName": "ALVENTri-P Glucose & ALVENTri Glucose Sugar Tube 3ml",
+    "ResType": "L",
+    "ResGrpCod": 1,
+    "StdCost1": 24.1,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "ALv-LC-FG-Gen",
+    "ResName": "Alventri labor cost general items",
+    "ResType": "L",
+    "ResGrpCod": 1,
+    "StdCost1": 8.035,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "ALv-QC-FG",
+    "ResName": "Alventri - QC - FG all",
+    "ResType": "O",
+    "ResGrpCod": 3,
+    "StdCost1": 47.944,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "Bey-FOH-FG-gen",
+    "ResName": "BEYOND ELISA FOH for all items",
+    "ResType": "O",
+    "ResGrpCod": 2,
+    "StdCost1": 0,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "Bey-LC-FG-gen",
+    "ResName": "BEYOND ELISA Labor cost for all items",
+    "ResType": "L",
+    "ResGrpCod": 1,
+    "StdCost1": 0,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "Bey-QC-FG-gen",
+    "ResName": "Beyond Elisa QC cost",
+    "ResType": "O",
+    "ResGrpCod": 3,
+    "StdCost1": 0,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "CTK-FOH-FG-gen",
+    "ResName": "CTK item FOH cost",
+    "ResType": "O",
+    "ResGrpCod": 2,
+    "StdCost1": 0,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "CTK-LC-FG-gen",
+    "ResName": "CTK labor resource cost",
+    "ResType": "L",
+    "ResGrpCod": 1,
+    "StdCost1": 18.08,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "CTK-QC-FG-gen",
+    "ResName": "CTK Quality Control cost -",
+    "ResType": "O",
+    "ResGrpCod": 3,
+    "StdCost1": 0,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "i.Sug-FOH-FG-66",
+    "ResName": "i.SUGAR Strips (pack of 100)",
+    "ResType": "O",
+    "ResGrpCod": 2,
+    "StdCost1": 654.433,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "i.Sug-FOH-FG-67",
+    "ResName": "i sugar Strip pack of 10",
+    "ResType": "O",
+    "ResGrpCod": 2,
+    "StdCost1": 65.444,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "i.Sug-FOH-FG-68",
+    "ResName": "i.SUGAR (GLUCOMETER)",
+    "ResType": "O",
+    "ResGrpCod": 2,
+    "StdCost1": 6.544,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "i.Sug-FOH-FG-69",
+    "ResName": "i.SUGAR Strips (1 Box 50 Strips)",
+    "ResType": "O",
+    "ResGrpCod": 2,
+    "StdCost1": 327.211,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "i.Sug-FOH-FG-70",
+    "ResName": "i-Sugar Blood Glucose Monitoring System",
+    "ResType": "O",
+    "ResGrpCod": 2,
+    "StdCost1": 6.5444,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "i.Sug-FOH-FG-Glucometer",
+    "ResName": "i.SUGAR (GLUCOMETER ONLY)",
+    "ResType": "O",
+    "ResGrpCod": 2,
+    "StdCost1": 6.544,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "i.Sug-LC-FG-66",
+    "ResName": "i.SUGAR Strips (pack of 100)",
+    "ResType": "L",
+    "ResGrpCod": 1,
+    "StdCost1": 12.053,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "i.Sug-LC-FG-67",
+    "ResName": "i sugar Strip pack of 10",
+    "ResType": "L",
+    "ResGrpCod": 1,
+    "StdCost1": 226,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "i.Sug-LC-FG-68",
+    "ResName": "i.SUGAR (GLUCOMETER)",
+    "ResType": "L",
+    "ResGrpCod": 1,
+    "StdCost1": 60.268,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "i.Sug-LC-FG-69",
+    "ResName": "i.SUGAR Strips (1 Box 50 Strips)",
+    "ResType": "L",
+    "ResGrpCod": 1,
+    "StdCost1": 7.533,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "i.Sug-LC-FG-70",
+    "ResName": "i-Sugar Blood Glucose Monitoring System",
+    "ResType": "L",
+    "ResGrpCod": 1,
+    "StdCost1": 60.26,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "i.Sug-LC-FG-Glucometer",
+    "ResName": "i.SUGAR (GLUCOMETER ONLY)",
+    "ResType": "L",
+    "ResGrpCod": 1,
+    "StdCost1": 45.201,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "i.Sug-QC-FG-66",
+    "ResName": "i.SUGAR Strips (pack of 100)",
+    "ResType": "O",
+    "ResGrpCod": 3,
+    "StdCost1": 72.84,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "i.Sug-QC-FG-67",
+    "ResName": "i sugar Strip pack of 10",
+    "ResType": "O",
+    "ResGrpCod": 3,
+    "StdCost1": 7.28,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "i.Sug-QC-FG-68",
+    "ResName": "i.SUGAR (GLUCOMETER)",
+    "ResType": "O",
+    "ResGrpCod": 3,
+    "StdCost1": 0.73,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "i.Sug-QC-FG-69",
+    "ResName": "i.SUGAR Strips (1 Box 50 Strips)",
+    "ResType": "O",
+    "ResGrpCod": 3,
+    "StdCost1": 36.42,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "i.Sug-QC-FG-70",
+    "ResName": "i.SUGAR Strips (pack of 100)",
+    "ResType": "O",
+    "ResGrpCod": 3,
+    "StdCost1": 0.73,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "i.Sug-QC-FG-Glucometer",
+    "ResName": "i.SUGAR (GLUCOMETER ONLY)",
+    "ResType": "O",
+    "ResGrpCod": 3,
+    "StdCost1": 0.73,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT FOH- FG-93,94,117",
+    "ResName": "R-test H. Pylori Ag Rapid Test & R-test Rotavirus/Adeno Ag Rapid Test & R-test FOB Rapid test ( Pack of 50) ( Pack of 50)",
+    "ResType": "O",
+    "ResGrpCod": 2,
+    "StdCost1": 99.26,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT LC- FG-93,94,117",
+    "ResName": "R-test H. Pylori Ag Rapid Test & R-test Rotavirus/Adeno Ag Rapid Test & R-test FOB Rapid test ( Pack of 50) ( Pack of 50)",
+    "ResType": "L",
+    "ResGrpCod": 1,
+    "StdCost1": 72.32,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT QC- FG-93,94,117",
+    "ResName": "R-test H. Pylori Ag Rapid Test & R-test Rotavirus/Adeno Ag Rapid Test & R-test FOB Rapid test ( Pack of 50) ( Pack of 50)",
+    "ResType": "O",
+    "ResGrpCod": 3,
+    "StdCost1": 24.08,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT-FOH-FG100",
+    "ResName": "R-test HCG Rapid Test( Pack of 150) FOH",
+    "ResType": "O",
+    "ResGrpCod": 2,
+    "StdCost1": 297.78,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT-FOH-FG-113",
+    "ResName": "R-test Ovulation Midstream test (self test)",
+    "ResType": "O",
+    "ResGrpCod": 2,
+    "StdCost1": 5.96,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT-FOH-FG79,92,116,118,120",
+    "ResName": "R test ispecific items ( Pack of 25)",
+    "ResType": "O",
+    "ResGrpCod": 2,
+    "StdCost1": 49.63,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT-FOH-FG-82,114",
+    "ResName": "R-test Covid-19 Rapid Antigen Self Test  & R-test Pregnancy Midstream test (Self Test)",
+    "ResType": "O",
+    "ResGrpCod": 2,
+    "StdCost1": 1.99,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT-FOH-FG84,FG86",
+    "ResName": "R-test Dengue Ns1 Ag & IgM/IgG Ab Combo  & R-test Dengue Ns1 Ag Malaria Pf/PV Combo (Pack of 50)",
+    "ResType": "O",
+    "ResGrpCod": 2,
+    "StdCost1": 99.26,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT-FOH-FG85",
+    "ResName": "R-test Dengue Ns1 Ag Malaria Pf/PV Combo ( Pack of 25)",
+    "ResType": "O",
+    "ResGrpCod": 2,
+    "StdCost1": 49.63,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT-FOH-FG-88",
+    "ResName": "R-test Dengue NS1 self test (pack of 20 test)",
+    "ResType": "O",
+    "ResGrpCod": 2,
+    "StdCost1": 39.7,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT-FOH-FG90,91,112,123",
+    "ResName": "R test specific items - (Pack of 25)",
+    "ResType": "O",
+    "ResGrpCod": 2,
+    "StdCost1": 49.63,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT-FOH-G01",
+    "ResName": "R-test FOH for general items ( 50 packs)",
+    "ResType": "O",
+    "ResGrpCod": 2,
+    "StdCost1": 99.26,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT-FOH-SAMPLE & Rtest",
+    "ResName": "Sample R test & R test SAR ( Pack of 10)",
+    "ResType": "O",
+    "ResGrpCod": 2,
+    "StdCost1": 19.85,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RTG-FOH-FG-gen",
+    "ResName": "R test GLOW FOH cost - all items",
+    "ResType": "O",
+    "ResGrpCod": 2,
+    "StdCost1": 0,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RTG-LC-FG-gen",
+    "ResName": "R test GLOW items Labor cost",
+    "ResType": "L",
+    "ResGrpCod": 1,
+    "StdCost1": 2.411,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RTG-QC-FG-gen",
+    "ResName": "R test GLOW - QC cost - all items",
+    "ResType": "O",
+    "ResGrpCod": 3,
+    "StdCost1": 0,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT-LC-FG100",
+    "ResName": "R-test HCG Rapid Test( Pack of 150)",
+    "ResType": "L",
+    "ResGrpCod": 1,
+    "StdCost1": 99.4,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT-LC-FG-113",
+    "ResName": "R-test Ovulation Midstream test (self test)",
+    "ResType": "L",
+    "ResGrpCod": 1,
+    "StdCost1": 3.977,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT-LC-FG79,92,116,118,120",
+    "ResName": "R test ispecific items ( Pack of 25)",
+    "ResType": "L",
+    "ResGrpCod": 1,
+    "StdCost1": 36.16,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT-LC-FG-82,114",
+    "ResName": "R-test Covid-19 Rapid Antigen Self Test  & R-test Pregnancy Midstream test (Self Test)",
+    "ResType": "L",
+    "ResGrpCod": 1,
+    "StdCost1": 1.325,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT-LC-FG84,FG86",
+    "ResName": "R-test Dengue Ns1 Ag & IgM/IgG Ab Combo  & R-test Dengue Ns1 Ag Malaria Pf/PV Combo (Pack of 50)",
+    "ResType": "L",
+    "ResGrpCod": 1,
+    "StdCost1": 108.48,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT-LC-FG85",
+    "ResName": "R-test Dengue Ns1 Ag Malaria Pf/PV Combo ( Pack of 25)",
+    "ResType": "L",
+    "ResGrpCod": 1,
+    "StdCost1": 54.24,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT-LC-FG-88",
+    "ResName": "R-test Dengue NS1 self test (pack of 20 test)",
+    "ResType": "L",
+    "ResGrpCod": 1,
+    "StdCost1": 26.51,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT-LC-FG90,91,112,123",
+    "ResName": "R test specific items - (Pack of 25)",
+    "ResType": "L",
+    "ResGrpCod": 1,
+    "StdCost1": 33.14,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT-LC-G01",
+    "ResName": "R-test labor cost for general items ( 50 packs)",
+    "ResType": "L",
+    "ResGrpCod": 1,
+    "StdCost1": 66.3,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT-LC-SAMPLE & Rtest",
+    "ResName": "Sample R test & R test SAR ( Pack of 10)",
+    "ResType": "L",
+    "ResGrpCod": 1,
+    "StdCost1": 13.26,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT-QC-FG100",
+    "ResName": "R-test HCG Rapid Test( Pack of 150)",
+    "ResType": "O",
+    "ResGrpCod": 3,
+    "StdCost1": 72.24,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT-QC-FG-113",
+    "ResName": "R-test Ovulation Midstream test (self test)",
+    "ResType": "O",
+    "ResGrpCod": 3,
+    "StdCost1": 1.44,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT-QC-FG79,92,116,118,120",
+    "ResName": "R test ispecific items ( Pack of 25)",
+    "ResType": "O",
+    "ResGrpCod": 3,
+    "StdCost1": 12,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT-QC-FG-82,114",
+    "ResName": "R-test Covid-19 Rapid Antigen Self Test  & R-test Pregnancy Midstream test (Self Test)",
+    "ResType": "O",
+    "ResGrpCod": 3,
+    "StdCost1": 0.5,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT-QC-FG84,FG86",
+    "ResName": "R-test Dengue Ns1 Ag & IgM/IgG Ab Combo  & R-test Dengue Ns1 Ag Malaria Pf/PV Combo (Pack of 50)",
+    "ResType": "O",
+    "ResGrpCod": 3,
+    "StdCost1": 24.08,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT-QC-FG85",
+    "ResName": "R-test Dengue NS1 self test (pack of 20 test)",
+    "ResType": "O",
+    "ResGrpCod": 3,
+    "StdCost1": 12,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT-QC-FG-88",
+    "ResName": "R-test Dengue NS1 self test (pack of 20 test)",
+    "ResType": "O",
+    "ResGrpCod": 3,
+    "StdCost1": 9.63,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT-QC-FG90,91,112,123",
+    "ResName": "R test specific items - (Pack of 25)",
+    "ResType": "O",
+    "ResGrpCod": 3,
+    "StdCost1": 49.63,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT-QC-G01",
+    "ResName": "R-test QC exp for general items ( 50 packs)",
+    "ResType": "O",
+    "ResGrpCod": 3,
+    "StdCost1": 24.08,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "RT-QC-SAMPLE & Rtest",
+    "ResName": "Sample R test & R test SAR ( Pack of 10)",
+    "ResType": "O",
+    "ResGrpCod": 3,
+    "StdCost1": 4.8,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "ViG-FOH-FG51",
+    "ResName": "Tanbead Nucleic acid extraction kit (96)",
+    "ResType": "O",
+    "ResGrpCod": 2,
+    "StdCost1": 0,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "ViG-FOH-FG52",
+    "ResName": "viGen Viral Nucleic Acid Auto Extraction Kit (Pack of 64)",
+    "ResType": "O",
+    "ResGrpCod": 2,
+    "StdCost1": 0,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "ViG-FOH-FG53",
+    "ResName": "ViGen Viral Nucleic Acid Extraction kit (pack of 64 test)",
+    "ResType": "O",
+    "ResGrpCod": 2,
+    "StdCost1": 0,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "ViG-LC-FG51",
+    "ResName": "Tanbead Nucleic acid extraction kit (96)",
+    "ResType": "L",
+    "ResGrpCod": 1,
+    "StdCost1": 5.786,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "ViG-LC-FG52",
+    "ResName": "viGen Viral Nucleic Acid Auto Extraction Kit (Pack of 64)",
+    "ResType": "L",
+    "ResGrpCod": 1,
+    "StdCost1": 3.857,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "ViG-LC-FG53",
+    "ResName": "ViGen Viral Nucleic Acid Extraction kit (pack of 64 test)",
+    "ResType": "L",
+    "ResGrpCod": 1,
+    "StdCost1": 3.857,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "ViG-QC-FG51",
+    "ResName": "Tanbead Nucleic acid extraction kit (96)",
+    "ResType": "O",
+    "ResGrpCod": 3,
+    "StdCost1": 0,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "ViG-QC-FG52",
+    "ResName": "viGen Viral Nucleic Acid Auto Extraction Kit (Pack of 64)",
+    "ResType": "O",
+    "ResGrpCod": 3,
+    "StdCost1": 0,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "ViG-QC-FG53",
+    "ResName": "ViGen Viral Nucleic Acid Extraction kit (pack of 64 test)",
+    "ResType": "O",
+    "ResGrpCod": 3,
+    "StdCost1": 0,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "VigQ-FOH-FG-gen",
+    "ResName": "ViGen Q FOH cost - all items",
+    "ResType": "O",
+    "ResGrpCod": 2,
+    "StdCost1": 0,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "VigQ-LC-FG-gen",
+    "ResName": "ViGen Q - labor cost",
+    "ResType": "L",
+    "ResGrpCod": 1,
+    "StdCost1": 8.68,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "VigQ-QC-FG-gen",
+    "ResName": "ViGen Q QC expense - all items",
+    "ResType": "O",
+    "ResGrpCod": 3,
+    "StdCost1": 0,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "Vx-FOH-FG-gen",
+    "ResName": "Vizumax FOH cost - all items",
+    "ResType": "O",
+    "ResGrpCod": 2,
+    "StdCost1": 0,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "Vx-LC-FG-gen",
+    "ResName": "Vizumax labor cost - all items",
+    "ResType": "L",
+    "ResGrpCod": 1,
+    "StdCost1": 0.2,
+    "IssueMthd": "M"
+  },
+  {
+    "ResCode": "Vx-QC-FG-gen",
+    "ResName": "Vizumax QC cost - all items",
+    "ResType": "O",
+    "ResGrpCod": 3,
+    "StdCost1": 0,
+    "IssueMthd": "B"
+  }
+]
