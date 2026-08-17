@@ -9,6 +9,7 @@ const productionRoutes = require('./routes/MachineEfficiency/efficiency.route');
 const productionTrendRoutes = require('./routes/ProductionTrend/productionTrend.route');
 const costAnalysisRoutes = require('./routes/costAnalysis.routes');
 const inventoryRoutes = require('./routes/Inventory/inventory.route');
+const productionPlanningRoutes = require('./routes/ProductionPlanning/productionPlanning.route');
 const app = express();
 
 applySecurityAndMiddlewares(app);
@@ -39,6 +40,7 @@ app.use("/api/machine-efficiency", productionRoutes);
 app.use("/api/production-trend", productionTrendRoutes);
 app.use("/api/cost-analysis", costAnalysisRoutes);
 app.use("/api/inventory", inventoryRoutes);
+app.use("/api/production-planning", productionPlanningRoutes);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3001;
