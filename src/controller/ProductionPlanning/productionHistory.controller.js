@@ -10,10 +10,11 @@ const getProductHistory = async (req, res) => {
     const pool = await poolPromise;
     const months = safeInt(req.query.months, 3);
     const search = req.query.search || '';
+    const page = safeInt(req.query.page, 1);
+    const pageSize = safeInt(req.query.pageSize, 20);
+    const offset = (page - 1) * pageSize;
     
-    let query = `
-      DECLARE @StartDate DATE = DATEADD(month, -${months}, GETDATE());
-
+    const baseCte = `
       WITH Production AS (
           SELECT 
               i.ItemCode,
@@ -53,6 +54,9 @@ const getProductHistory = async (req, res) => {
           WHERE Status IN ('P', 'R') AND (PlannedQty - CmpltQty) > 0
           GROUP BY ItemCode
       )
+    `;
+
+    let selectQuery = `
       SELECT 
           itm.ItemCode,
           itm.ItemName,
@@ -73,20 +77,41 @@ const getProductHistory = async (req, res) => {
       LEFT JOIN CurrentStock s ON itm.ItemCode = s.ItemCode
       LEFT JOIN OpenDemand od ON itm.ItemCode = od.ItemCode
       LEFT JOIN OpenProduction op ON itm.ItemCode = op.ItemCode
-      WHERE (p.ProducedQty > 0 OR d.DeliveredQty > 0 OR s.OnHand > 0 OR od.OpenSO > 0)
+      WHERE (ISNULL(p.ProducedQty, 0) > 0 OR ISNULL(d.DeliveredQty, 0) > 0 OR ISNULL(s.OnHand, 0) > 0 OR ISNULL(od.OpenSO, 0) > 0)
     `;
 
     if (search) {
-      query += ` AND (itm.ItemCode LIKE '%${search}%' OR itm.ItemName LIKE '%${search}%')`;
+      selectQuery += ` AND (itm.ItemCode LIKE '%${search}%' OR itm.ItemName LIKE '%${search}%')`;
     }
-    
-    query += ` ORDER BY d.DeliveredQty DESC, p.ProducedQty DESC`;
 
-    const dataRes = await pool.request().query(query);
+    const countQuery = `
+      DECLARE @StartDate DATE = DATEADD(month, -${months}, GETDATE());
+      ${baseCte}
+      SELECT COUNT(*) as count FROM (${selectQuery}) AS t
+    `;
+
+    const countRes = await pool.request().query(countQuery);
+    const totalRecords = countRes.recordset[0].count;
+
+    const dataQuery = `
+      DECLARE @StartDate DATE = DATEADD(month, -${months}, GETDATE());
+      ${baseCte}
+      ${selectQuery}
+      ORDER BY ISNULL(d.DeliveredQty, 0) DESC, ISNULL(p.ProducedQty, 0) DESC
+      OFFSET ${offset} ROWS FETCH NEXT ${pageSize} ROWS ONLY
+    `;
+
+    const dataRes = await pool.request().query(dataQuery);
     
     res.json({
       success: true,
       data: dataRes.recordset,
+      pagination: {
+        totalRecords,
+        currentPage: page,
+        pageSize,
+        totalPages: Math.ceil(totalRecords / pageSize)
+      }
     });
   } catch (error) {
     console.error("Error in getProductHistory:", error);
