@@ -10,6 +10,7 @@ const productionTrendRoutes = require('./routes/ProductionTrend/productionTrend.
 const costAnalysisRoutes = require('./routes/costAnalysis.routes');
 const inventoryRoutes = require('./routes/Inventory/inventory.route');
 const productionPlanningRoutes = require('./routes/ProductionPlanning/productionPlanning.route');
+const dashboardRoutes = require('./routes/Dashboard/dashboard.route');
 const app = express();
 
 applySecurityAndMiddlewares(app);
@@ -41,6 +42,7 @@ app.use("/api/production-trend", productionTrendRoutes);
 app.use("/api/cost-analysis", costAnalysisRoutes);
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/production-planning", productionPlanningRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3001;
