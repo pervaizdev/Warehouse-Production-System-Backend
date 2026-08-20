@@ -36,17 +36,20 @@ exports.getOverviewData = async (req, res) => {
         COUNT(o.DocEntry) as TotalOrders,
         SUM(CASE WHEN o.Status = 'R' THEN 1 ELSE 0 END) as ActiveOrders,
         SUM(CASE WHEN o.Status = 'P' THEN 1 ELSE 0 END) as PlannedOrders,
-        ISNULL(SUM(o.PlannedQty), 0) as TotalPlannedQty,
-        ISNULL((SELECT SUM(Quantity) FROM LDS_LIVE.dbo.IGN1 WHERE BaseType = 202 ${whereClause.replace('o.', '')}), 0) as TotalActualQty,
-        ISNULL((SELECT SUM(LineTotal) FROM LDS_LIVE.dbo.IGE1 WHERE BaseType = 202 ${whereClause.replace('o.', '')}), 0) as TotalActualCost
+        SUM(CASE WHEN o.Status = 'C' THEN 1 ELSE 0 END) as CancelledOrders,
+        SUM(CASE WHEN o.Status = 'L' THEN 1 ELSE 0 END) as ClosedOrders,
+        SUM(CASE WHEN o.Status IN ('R', 'P') AND o.DueDate < CAST(GETDATE() AS DATE) AND o.CmpltQty < o.PlannedQty THEN 1 ELSE 0 END) as DelayedOrders,
+        ISNULL(SUM(CASE WHEN o.Status IN ('R', 'P', 'L') THEN o.PlannedQty ELSE 0 END), 0) as TotalPlannedQty,
+        ISNULL((SELECT SUM(Quantity) FROM LDS_LIVE.dbo.IGN1 WHERE BaseType = 202 ${whereClause.replace('o.', '')}), 0) as TotalActualQty
+        -- ISNULL((SELECT SUM(LineTotal) FROM LDS_LIVE.dbo.IGE1 WHERE BaseType = 202 ${whereClause.replace('o.', '')}), 0) as TotalActualCost
       FROM LDS_LIVE.dbo.OWOR o
-      WHERE o.Status IN ('R', 'P', 'L') ${whereClause}
+      WHERE o.Status IN ('R', 'P', 'L', 'C') ${whereClause}
     `;
 
     // 2. Inventory Health KPIs
     const invKpiQuery = `
       SELECT
-        ISNULL(SUM(iw.OnHand * CASE WHEN m.AvgPrice > 0 THEN m.AvgPrice ELSE 0 END), 0) AS TotalInventoryValue,
+        -- ISNULL(SUM(iw.OnHand * CASE WHEN m.AvgPrice > 0 THEN m.AvgPrice ELSE 0 END), 0) AS TotalInventoryValue,
         COUNT(DISTINCT CASE WHEN iw.OnHand <= 0 THEN iw.ItemCode END) AS OutOfStockItems,
         COUNT(DISTINCT CASE WHEN iw.MinStock > 0 AND (iw.OnHand - iw.IsCommited) < iw.MinStock THEN iw.ItemCode END) AS CriticalItems
       FROM LDS_LIVE.dbo.OITW iw
@@ -99,17 +102,19 @@ exports.getOverviewData = async (req, res) => {
       ORDER BY o.DocNum DESC
     `;
 
-    // 6. Top Products Produced (Mix)
-    const mixQuery = `
-      SELECT TOP 5
-        g.ItmsGrpNam as ItemGroup,
-        COUNT(o.DocEntry) as OrderCount
+    // 6. Open Orders Details
+    const openOrdersQuery = `
+      SELECT
+        o.DocNum,
+        i.ItemName as ProductName,
+        o.Status,
+        o.PlannedQty,
+        ISNULL((SELECT SUM(Quantity) FROM LDS_LIVE.dbo.IGN1 WHERE BaseEntry = o.DocEntry AND BaseType = 202), 0) as ActualQty,
+        o.DueDate
       FROM LDS_LIVE.dbo.OWOR o
       LEFT JOIN LDS_LIVE.dbo.OITM i ON o.ItemCode = i.ItemCode
-      LEFT JOIN LDS_LIVE.dbo.OITB g ON i.ItmsGrpCod = g.ItmsGrpCod
-      WHERE o.Status IN ('R', 'L') ${whereClause}
-      GROUP BY g.ItmsGrpNam
-      ORDER BY OrderCount DESC
+      WHERE o.Status IN ('P', 'R') ${whereClause}
+      ORDER BY o.DueDate ASC
     `;
 
     // Run all queries concurrently
@@ -119,7 +124,7 @@ exports.getOverviewData = async (req, res) => {
       machineResult,
       trendResult,
       recentOrdersResult,
-      mixResult,
+      openOrdersDetailsResult,
       expiryResult
     ] = await Promise.all([
       request.query(kpiQuery),
@@ -127,7 +132,7 @@ exports.getOverviewData = async (req, res) => {
       pool.request().query(machineQuery),
       pool.request().query(trendQuery),
       pool.request().query(recentOrdersQuery),
-      request.query(mixQuery),
+      request.query(openOrdersQuery),
       pool.request().query(`
         SELECT
           COUNT(DISTINCT CASE WHEN b.ExpDate IS NOT NULL AND b.ExpDate >= GETDATE() AND b.ExpDate <= DATEADD(DAY, 30, GETDATE()) THEN CONCAT(b.ItemCode, '-', b.DistNumber) END) AS Expiring30Days,
@@ -151,12 +156,15 @@ exports.getOverviewData = async (req, res) => {
       executiveKPIs: {
         totalOrders: kpiData.TotalOrders || 0,
         activeOrders: kpiData.ActiveOrders || 0,
-        totalInventoryValue: invData.TotalInventoryValue || 0,
+        // totalInventoryValue: invData.TotalInventoryValue || 0,
         machineUtilization: parseFloat(machineUtilization).toFixed(1),
         yieldPercent: parseFloat(efficiencyPercent).toFixed(1),
-        criticalStockItems: invData.CriticalItems || 0,
         outOfStockItems: invData.OutOfStockItems || 0,
-        totalActualCost: kpiData.TotalActualCost || 0
+        delayedOrders: kpiData.DelayedOrders || 0,
+        cancelledOrders: kpiData.CancelledOrders || 0,
+        plannedOrders: kpiData.PlannedOrders || 0,
+        closedOrders: kpiData.ClosedOrders || 0
+        // totalActualCost: kpiData.TotalActualCost || 0
       },
       productionPerformance: trendResult.recordset,
       inventoryHealth: {
@@ -166,7 +174,8 @@ exports.getOverviewData = async (req, res) => {
         expiring90Days: expiryData.Expiring90Days || 0
       },
       recentOrders: recentOrdersResult.recordset,
-      productionMix: mixResult.recordset,
+      // productionMix: mixResult.recordset,
+      openOrdersDetails: openOrdersDetailsResult.recordset,
       alerts: [
         ...(invData.OutOfStockItems > 0 ? [{ id: 1, type: 'critical', title: 'Out of Stock', description: `${invData.OutOfStockItems} items are currently out of stock.` }] : []),
         ...(invData.CriticalItems > 0 ? [{ id: 2, type: 'warning', title: 'Critical Stock Level', description: `${invData.CriticalItems} items have fallen below minimum stock levels.` }] : []),
@@ -182,6 +191,99 @@ exports.getOverviewData = async (req, res) => {
 
   } catch (error) {
     console.error("Error generating dashboard overview:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.getFilteredOrders = async (req, res) => {
+  try {
+    const { status = 'All', tableDateFilter = 'today', volumeDateFilter = 'yearly', warehouse } = req.query;
+    const pool = await poolPromise;
+    const request = pool.request();
+
+    // Helper function to build date conditions
+    const buildDateCondition = (filter, prefix) => {
+      if (filter === 'today') return `${prefix}.PostDate >= CAST(GETDATE() AS DATE)`;
+      if (filter === 'weekly') return `${prefix}.PostDate >= DATEADD(day, -7, CAST(GETDATE() AS DATE))`;
+      if (filter === 'monthly') return `${prefix}.PostDate >= DATEADD(month, -1, CAST(GETDATE() AS DATE))`;
+      if (filter === 'yearly') return `${prefix}.PostDate >= DATEADD(year, -1, CAST(GETDATE() AS DATE))`;
+      return '1=1';
+    };
+
+    // 1. Build Date Filter for the Orders List
+    let tableDateCondition = buildDateCondition(tableDateFilter, 'o');
+
+    // 2. Build Status Filter for the Orders List
+    let statusCondition = '';
+    if (status === 'Delayed') {
+      statusCondition = "o.Status IN ('P', 'R') AND o.DueDate < CAST(GETDATE() AS DATE) AND o.CmpltQty < o.PlannedQty";
+    } else if (status !== 'All') {
+      statusCondition = "o.Status = @status";
+      request.input('status', sql.NVarChar, status);
+    } else {
+      statusCondition = "o.Status IN ('R', 'L', 'C', 'P')";
+    }
+
+    // 3. Build Warehouse Filter
+    let whsCondition = '';
+    if (warehouse) {
+      whsCondition = "o.Warehouse = @warehouse";
+      request.input('warehouse', sql.NVarChar, warehouse);
+    }
+
+    const whereClauses = [tableDateCondition, statusCondition, whsCondition].filter(c => c !== '').join(' AND ');
+    const finalWhere = whereClauses ? `WHERE ${whereClauses}` : '';
+
+    const ordersQuery = `
+      SELECT
+        o.DocNum,
+        i.ItemName as ProductName,
+        o.Status,
+        o.PlannedQty,
+        ISNULL((SELECT SUM(Quantity) FROM LDS_LIVE.dbo.IGN1 WHERE BaseEntry = o.DocEntry AND BaseType = 202), 0) as ActualQty,
+        o.DueDate,
+        o.PostDate
+      FROM LDS_LIVE.dbo.OWOR o
+      LEFT JOIN LDS_LIVE.dbo.OITM i ON o.ItemCode = i.ItemCode
+      ${finalWhere}
+      ORDER BY o.PostDate DESC, o.DocNum DESC
+    `;
+
+    // 4. Order Volume Summary (Breakdown by status for the selected timeframe)
+    // We ignore the statusFilter so the donut chart always shows the full breakdown for the selected date range.
+    let volumeDateCondition = buildDateCondition(volumeDateFilter, 'o');
+    const volumeWhereClauses = [
+      volumeDateCondition !== '1=1' ? volumeDateCondition : '', 
+      whsCondition,
+      "o.Status IN ('R', 'L', 'C', 'P')"
+    ].filter(c => c !== '').join(' AND ');
+
+    const volumeQuery = `
+      SELECT
+        SUM(CASE WHEN o.Status = 'R' THEN 1 ELSE 0 END) as ReleasedCount,
+        SUM(CASE WHEN o.Status = 'L' THEN 1 ELSE 0 END) as ClosedCount,
+        SUM(CASE WHEN o.Status = 'C' THEN 1 ELSE 0 END) as CancelledCount,
+        SUM(CASE WHEN o.Status = 'P' THEN 1 ELSE 0 END) as PlannedCount,
+        SUM(CASE WHEN o.Status IN ('P', 'R') AND o.DueDate < CAST(GETDATE() AS DATE) AND o.CmpltQty < o.PlannedQty THEN 1 ELSE 0 END) as DelayedCount
+      FROM LDS_LIVE.dbo.OWOR o
+      WHERE ${volumeWhereClauses}
+    `;
+
+    const [ordersResult, volumeResult] = await Promise.all([
+      request.query(ordersQuery),
+      pool.request().query(volumeQuery)
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        orders: ordersResult.recordset,
+        volume: volumeResult.recordset[0]
+      }
+    });
+
+  } catch (error) {
+    console.error("Error in getFilteredOrders:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
