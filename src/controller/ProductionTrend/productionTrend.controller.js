@@ -1,5 +1,34 @@
 const { sql, poolPromise } = require('../../database/connection');
 
+// Helper to construct WHERE conditions for Order KPIs based on query params (using OWOR.PostDate)
+function buildOrderWhereClause(query, request) {
+  const { dateFrom, dateTo, year, month, product, productGroup, warehouse, order, machine, status } = query;
+  let conditions = [];
+
+  // We rely on parameters already being added to the request object by the main buildWhereClause if they share names.
+  // We just need to build the SQL string.
+  
+  if (dateFrom) conditions.push("p.PostDate >= @dateFrom");
+  if (dateTo) conditions.push("p.PostDate <= @dateTo");
+  if (year) conditions.push("YEAR(p.PostDate) = @year");
+  if (month) conditions.push("MONTH(p.PostDate) = @month");
+  if (product) conditions.push("p.ItemCode = @product");
+  if (productGroup) conditions.push("m.ItmsGrpCod = @productGroup");
+  if (warehouse) conditions.push("p.Warehouse = @warehouse");
+  if (order) conditions.push("p.DocNum = @order");
+  if (status) conditions.push("p.Status = @status");
+  
+  if (machine) {
+    conditions.push(`EXISTS (
+      SELECT 1 FROM LDS_LIVE.dbo.WOR1 w 
+      INNER JOIN LDS_LIVE.dbo.ORSC r ON w.ItemCode = r.ResCode 
+      WHERE w.DocEntry = p.DocEntry AND w.ItemType = 290 AND r.ResCode = @machine
+    )`);
+  }
+
+  return conditions.length > 0 ? "WHERE " + conditions.join(" AND ") : "";
+}
+
 // Helper to construct WHERE conditions based on query params
 function buildWhereClause(query, request) {
   const {
@@ -79,13 +108,12 @@ exports.getSummary = async (req, res) => {
     const pool = await poolPromise;
     const request = pool.request();
     const whereClause = buildWhereClause(req.query, request);
+    const orderWhereClause = buildOrderWhereClause(req.query, request);
 
-    const query = `
+    // 1. Query for Production Metrics (Requires a valid receipt IGN1)
+    const prodQuery = `
       SELECT 
-        ISNULL(SUM(i.Quantity), 0) AS TotalProductionQty,
-        COUNT(DISTINCT p.DocEntry) AS TotalOrders,
-        COUNT(DISTINCT i.ItemCode) AS TotalProducts,
-        ISNULL(SUM(p.RjctQty), 0) AS TotalRejectedQty
+        ISNULL(SUM(i.Quantity), 0) AS TotalProductionQty
       FROM LDS_LIVE.dbo.IGN1 i
       INNER JOIN LDS_LIVE.dbo.OIGN h ON i.DocEntry = h.DocEntry
       INNER JOIN LDS_LIVE.dbo.OWOR p ON i.BaseEntry = p.DocEntry
@@ -93,13 +121,25 @@ exports.getSummary = async (req, res) => {
       ${whereClause}
     `;
 
-    const result = await request.query(query);
-    const summary = result.recordset[0] || {
-      TotalProductionQty: 0,
-      TotalOrders: 0,
-      TotalProducts: 0,
-      TotalRejectedQty: 0
-    };
+    // 2. Query for Order Metrics (Queries all production orders regardless of receipts)
+    const orderQuery = `
+      SELECT 
+        COUNT(DISTINCT p.DocEntry) AS TotalOrders,
+        COUNT(DISTINCT CASE WHEN p.Status IN ('R', 'P') THEN p.DocEntry END) AS PendingOrders,
+        COUNT(DISTINCT CASE WHEN p.Status = 'L' THEN p.DocEntry END) AS CompleteOrders,
+        COUNT(DISTINCT CASE WHEN p.Status = 'C' THEN p.DocEntry END) AS CancelledOrders
+      FROM LDS_LIVE.dbo.OWOR p
+      LEFT JOIN LDS_LIVE.dbo.OITM m ON p.ItemCode = m.ItemCode
+      ${orderWhereClause}
+    `;
+
+    const [prodResult, orderResult] = await Promise.all([
+      request.query(prodQuery),
+      request.query(orderQuery)
+    ]);
+
+    const prodSummary = prodResult.recordset[0] || { TotalProductionQty: 0 };
+    const orderSummary = orderResult.recordset[0] || { TotalOrders: 0, PendingOrders: 0, CompleteOrders: 0, CancelledOrders: 0 };
 
     // Calculate Growth % (Current Period vs Previous Period)
     let growthPercent = 0;
@@ -142,11 +182,11 @@ exports.getSummary = async (req, res) => {
     res.status(200).json({
       success: true,
       data: {
-        totalProduction: parseFloat(summary.TotalProductionQty).toFixed(2),
-        totalOrders: summary.TotalOrders,
-        totalProducts: summary.TotalProducts,
-        totalRejected: parseFloat(summary.TotalRejectedQty).toFixed(2),
-        growthPercent: parseFloat(growthPercent).toFixed(2)
+        totalOrders: orderSummary.TotalOrders,
+        pendingOrders: orderSummary.PendingOrders,
+        completeOrders: orderSummary.CompleteOrders,
+        cancelledOrders: orderSummary.CancelledOrders,
+        totalProduction: parseFloat(prodSummary.TotalProductionQty).toFixed(2)
       }
     });
   } catch (error) {
