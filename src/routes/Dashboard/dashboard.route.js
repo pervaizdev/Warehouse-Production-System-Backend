@@ -4,5 +4,6 @@ const dashboardController = require('../../controller/Dashboard/dashboard.contro
 const authenticateToken = require('../../middleware/auth.middleware');
 
 router.get('/', authenticateToken, dashboardController.getOverviewData);
+router.get('/filtered-orders', authenticateToken, dashboardController.getFilteredOrders);
 
 module.exports = router;

@@ -109,7 +109,7 @@ const getMaterialShortages = async (req, res) => {
     
     // Dataset 2: Material Shortages for Open Orders
     let query = `
-      WITH ComponentDemand AS (
+    WITH ComponentDemand AS (
           SELECT 
               w.ItemCode AS ComponentCode,
               SUM(w.PlannedQty - w.IssuedQty) AS RemainingRequired
@@ -121,7 +121,7 @@ const getMaterialShortages = async (req, res) => {
       AvailableStock AS (
           SELECT 
               ItemCode, 
-              SUM(OnHand - IsCommited) AS TotalAvailable
+              SUM(OnHand) AS TotalAvailable
           FROM LDS_Live.dbo.OITW (NOLOCK)
           GROUP BY ItemCode
       ),

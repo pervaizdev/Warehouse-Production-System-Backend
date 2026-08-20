@@ -23,7 +23,9 @@ const getProductHistory = async (req, res) => {
               COUNT(DISTINCT h.DocNum) AS NumProductionReceipts
           FROM LDS_Live.dbo.IGN1 i (NOLOCK)
           INNER JOIN LDS_Live.dbo.OIGN h (NOLOCK) ON i.DocEntry = h.DocEntry
-          WHERE i.BaseType = 202 AND h.DocDate >= @StartDate
+          WHERE i.BaseType = 202 
+            AND h.DocDate BETWEEN @StartDate AND @EndDate
+            AND ISNULL(h.CANCELED, 'N') = 'N'
           GROUP BY i.ItemCode
       ),
       Deliveries AS (
@@ -34,24 +36,36 @@ const getProductHistory = async (req, res) => {
               COUNT(DISTINCT h.DocNum) AS NumDeliveries
           FROM LDS_Live.dbo.DLN1 d (NOLOCK)
           INNER JOIN LDS_Live.dbo.ODLN h (NOLOCK) ON d.DocEntry = h.DocEntry
-          WHERE h.DocDate >= @StartDate
+          WHERE h.DocDate BETWEEN @StartDate AND @EndDate
+            AND ISNULL(h.CANCELED, 'N') = 'N'
           GROUP BY d.ItemCode
       ),
+      Returns AS (
+          SELECT 
+              r.ItemCode,
+              SUM(r.Quantity) AS ReturnedQty
+          FROM LDS_Live.dbo.RDN1 r (NOLOCK)
+          INNER JOIN LDS_Live.dbo.ORDN h (NOLOCK) ON r.DocEntry = h.DocEntry
+          WHERE h.DocDate BETWEEN @StartDate AND @EndDate
+            AND ISNULL(h.CANCELED, 'N') = 'N'
+          GROUP BY r.ItemCode
+      ),
       CurrentStock AS (
-          SELECT ItemCode, SUM(OnHand) AS OnHand, SUM(IsCommited) AS IsCommited
-          FROM LDS_Live.dbo.OITW (NOLOCK)
+          SELECT ItemCode, SUM(InQty - OutQty) AS OnHand
+          FROM LDS_Live.dbo.OINM (NOLOCK)
+          WHERE DocDate <= @EndDate
           GROUP BY ItemCode
       ),
       OpenDemand AS (
           SELECT ItemCode, SUM(OpenQty) AS OpenSO
           FROM LDS_Live.dbo.RDR1 (NOLOCK)
-          WHERE OpenQty > 0
+          WHERE DocDate <= @EndDate AND LineStatus = 'O'
           GROUP BY ItemCode
       ),
       OpenProduction AS (
           SELECT ItemCode, SUM(PlannedQty - CmpltQty) AS OpenProd
           FROM LDS_Live.dbo.OWOR (NOLOCK)
-          WHERE Status IN ('P', 'R') AND (PlannedQty - CmpltQty) > 0
+          WHERE PostDate <= @EndDate AND Status IN ('P', 'R')
           GROUP BY ItemCode
       )
     `;
@@ -61,19 +75,20 @@ const getProductHistory = async (req, res) => {
           itm.ItemCode,
           itm.ItemName,
           ISNULL(s.OnHand, 0) AS OnHand,
-          ISNULL(s.IsCommited, 0) AS IsCommited,
-          ISNULL(s.OnHand, 0) - ISNULL(s.IsCommited, 0) AS AvailableQty,
+          0 AS IsCommited, -- Cannot reliably reconstruct historical committed stock without heavy queries
+          ISNULL(s.OnHand, 0) AS AvailableQty,
           ISNULL(p.ProducedQty, 0) AS ProducedQty,
-          ISNULL(d.DeliveredQty, 0) AS DeliveredQty,
+          (ISNULL(d.DeliveredQty, 0) - ISNULL(ret.ReturnedQty, 0)) AS DeliveredQty,
           ISNULL(od.OpenSO, 0) AS OpenSO,
           ISNULL(op.OpenProd, 0) AS OpenProduction,
-          ISNULL(p.ProducedQty, 0) - ISNULL(d.DeliveredQty, 0) AS NetProduction,
+          ISNULL(p.ProducedQty, 0) - (ISNULL(d.DeliveredQty, 0) - ISNULL(ret.ReturnedQty, 0)) AS NetProduction,
           CAST(p.LastProductionDate AS DATE) AS LastProductionDate,
           CAST(d.LastDeliveryDate AS DATE) AS LastDeliveryDate,
-          ISNULL(p.ProducedQty, 0) / NULLIF((ISNULL(d.DeliveredQty, 0)), 0) AS ProdToDelvRatio
+          ISNULL(p.ProducedQty, 0) / NULLIF(((ISNULL(d.DeliveredQty, 0) - ISNULL(ret.ReturnedQty, 0))), 0) AS ProdToDelvRatio
       FROM LDS_Live.dbo.OITM itm (NOLOCK)
       LEFT JOIN Production p ON itm.ItemCode = p.ItemCode
       LEFT JOIN Deliveries d ON itm.ItemCode = d.ItemCode
+      LEFT JOIN Returns ret ON itm.ItemCode = ret.ItemCode
       LEFT JOIN CurrentStock s ON itm.ItemCode = s.ItemCode
       LEFT JOIN OpenDemand od ON itm.ItemCode = od.ItemCode
       LEFT JOIN OpenProduction op ON itm.ItemCode = op.ItemCode
@@ -85,7 +100,8 @@ const getProductHistory = async (req, res) => {
     }
 
     const countQuery = `
-      DECLARE @StartDate DATE = DATEADD(month, -${months}, GETDATE());
+      DECLARE @StartDate DATE = DATEADD(month, DATEDIFF(month, 0, GETDATE()) - ${months}, 0);
+      DECLARE @EndDate DATE = EOMONTH(@StartDate);
       ${baseCte}
       SELECT COUNT(*) as count FROM (${selectQuery}) AS t
     `;
@@ -94,10 +110,11 @@ const getProductHistory = async (req, res) => {
     const totalRecords = countRes.recordset[0].count;
 
     const dataQuery = `
-      DECLARE @StartDate DATE = DATEADD(month, -${months}, GETDATE());
+      DECLARE @StartDate DATE = DATEADD(month, DATEDIFF(month, 0, GETDATE()) - ${months}, 0);
+      DECLARE @EndDate DATE = EOMONTH(@StartDate);
       ${baseCte}
       ${selectQuery}
-      ORDER BY ISNULL(d.DeliveredQty, 0) DESC, ISNULL(p.ProducedQty, 0) DESC
+      ORDER BY (ISNULL(d.DeliveredQty, 0) - ISNULL(ret.ReturnedQty, 0)) DESC, ISNULL(p.ProducedQty, 0) DESC
       OFFSET ${offset} ROWS FETCH NEXT ${pageSize} ROWS ONLY
     `;
 
