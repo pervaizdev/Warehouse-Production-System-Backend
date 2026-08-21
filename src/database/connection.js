@@ -15,8 +15,6 @@ const poolPromise = new sql.ConnectionPool(config)
 module.exports = { sql, poolPromise };
 
 
-
-
 // const driver = process.env.DB_DRIVER === 'msnodesqlv8' ? 'mssql/msnodesqlv8' : 'mssql';
 // const sql = require(driver);
 // if (process.env.DB_DRIVER === 'msnodesqlv8') {
