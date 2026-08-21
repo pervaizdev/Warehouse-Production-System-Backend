@@ -54,7 +54,6 @@ async function getSummary(req, res) {
           iw.OnOrder,
           iw.MinStock,
           iw.MaxStock,
-          m.AvgPrice,
           m.ItmsGrpCod,
           m.U_cat1
         FROM LDS_LIVE.dbo.OITW iw
@@ -65,7 +64,6 @@ async function getSummary(req, res) {
           ${categoryFilter}
       )
       SELECT
-        ISNULL(SUM(s.OnHand * CASE WHEN s.AvgPrice > 0 THEN s.AvgPrice ELSE 0 END), 0) AS TotalInventoryValue,
         COUNT(DISTINCT CASE WHEN s.OnHand <> 0 THEN s.ItemCode END) AS ActiveSKUs,
         COUNT(DISTINCT CASE WHEN s.OnHand <> 0 THEN s.WhsCode END) AS ActiveWarehouses,
         ISNULL(SUM(s.OnHand), 0) AS TotalOnHand,
@@ -79,12 +77,37 @@ async function getSummary(req, res) {
       FROM Stock s
     `;
 
+    const categoryWiseQuery = `
+      SELECT
+        ISNULL(NULLIF(LTRIM(RTRIM(m.U_cat1)), ''), 'Uncategorized') AS Category,
+        COUNT(DISTINCT iw.ItemCode) AS TotalSKUs,
+        ISNULL(SUM(iw.OnHand), 0) AS OnHand,
+        ISNULL(SUM(CASE WHEN (iw.OnHand + iw.OnOrder - iw.IsCommited) < 0 THEN 0 ELSE (iw.OnHand + iw.OnOrder - iw.IsCommited) END), 0) AS Available,
+        ISNULL(SUM(iw.IsCommited), 0) AS Committed,
+        ISNULL(SUM(iw.OnOrder), 0) AS OnOrder,
+        COUNT(DISTINCT CASE WHEN iw.MinStock > 0 AND (iw.OnHand - iw.IsCommited) < iw.MinStock THEN iw.ItemCode END) AS CriticalItems,
+        COUNT(DISTINCT CASE WHEN (iw.OnHand + iw.OnOrder - iw.IsCommited) < iw.IsCommited THEN iw.ItemCode END) AS OutOfStockItems,
+        COUNT(DISTINCT CASE WHEN iw.OnHand < 0 THEN iw.ItemCode END) AS NegativeStockItems,
+        COUNT(DISTINCT CASE WHEN (iw.OnHand + iw.OnOrder - iw.IsCommited) > iw.IsCommited AND iw.IsCommited > 0 THEN iw.ItemCode END) AS ExcessStockItems
+      FROM LDS_LIVE.dbo.OITW iw
+      INNER JOIN LDS_LIVE.dbo.OITM m ON iw.ItemCode = m.ItemCode
+      WHERE 1=1
+        ${warehouseFilter}
+        ${itemGroupFilter}
+        ${categoryFilter}
+      GROUP BY ISNULL(NULLIF(LTRIM(RTRIM(m.U_cat1)), ''), 'Uncategorized')
+      ORDER BY OnHand DESC
+    `;
+
     const request = pool.request();
     if (warehouse) request.input("warehouse", warehouse);
     if (itemGroup) request.input("itemGroup", parseInt(itemGroup));
     if (category) request.input("category", category);
 
-    const result = await request.query(query);
+    const [result, categoryWiseResult] = await Promise.all([
+      request.query(query),
+      request.query(categoryWiseQuery)
+    ]);
     const summary = result.recordset[0];
 
     // Batch expiry query (separate grain)
@@ -102,7 +125,6 @@ async function getSummary(req, res) {
     return res.json({
       success: true,
       data: {
-        totalInventoryValue: safeNum(summary.TotalInventoryValue),
         activeSKUs: summary.ActiveSKUs || 0,
         activeWarehouses: summary.ActiveWarehouses || 0,
         totalOnHand: safeNum(summary.TotalOnHand),
@@ -115,6 +137,7 @@ async function getSummary(req, res) {
         excessItems: summary.ExcessItems || 0,
         expiredBatches: expiry.ExpiredBatches || 0,
         nearExpiryBatches: expiry.NearExpiryBatches || 0,
+        categoryWise: categoryWiseResult.recordset,
       },
     });
   } catch (error) {
@@ -149,12 +172,9 @@ async function getCurrentStock(req, res) {
     if (search) filters += " AND (iw.ItemCode LIKE @search OR m.ItemName LIKE @search)";
 
     // Status filter
-    if (status === "critical") filters += " AND iw.MinStock > 0 AND (iw.OnHand - iw.IsCommited) < iw.MinStock";
-    else if (status === "low") filters += " AND iw.MinStock > 0 AND (iw.OnHand - iw.IsCommited) >= iw.MinStock AND (iw.OnHand - iw.IsCommited) <= iw.MinStock * 1.2";
-    else if (status === "out") filters += " AND iw.OnHand <= 0";
-    else if (status === "negative") filters += " AND iw.OnHand < 0";
-    else if (status === "excess") filters += " AND iw.MaxStock > 0 AND iw.OnHand > iw.MaxStock";
-    else if (status === "normal") filters += " AND iw.OnHand > 0";
+    if (status === "out") filters += " AND (iw.OnHand + iw.OnOrder - iw.IsCommited) < iw.IsCommited";
+    else if (status === "excess") filters += " AND (iw.OnHand + iw.OnOrder - iw.IsCommited) > iw.IsCommited AND iw.IsCommited > 0";
+    else if (status === "normal") filters += " AND NOT ((iw.OnHand + iw.OnOrder - iw.IsCommited) < iw.IsCommited OR ((iw.OnHand + iw.OnOrder - iw.IsCommited) > iw.IsCommited AND iw.IsCommited > 0))";
 
     const offset = (page - 1) * pageSize;
 
@@ -179,19 +199,14 @@ async function getCurrentStock(req, res) {
         iw.OnHand,
         iw.IsCommited AS Committed,
         iw.OnOrder,
-        (iw.OnHand - iw.IsCommited) AS Available,
-        (iw.OnHand + iw.OnOrder - iw.IsCommited) AS Projected,
+        CASE WHEN (iw.OnHand + iw.OnOrder - iw.IsCommited) < 0 THEN 0 ELSE (iw.OnHand + iw.OnOrder - iw.IsCommited) END AS Available,
+        CASE WHEN (iw.OnHand + iw.OnOrder - iw.IsCommited) < 0 THEN ABS(iw.OnHand + iw.OnOrder - iw.IsCommited) ELSE 0 END AS OutOfOrder,
         iw.MinStock,
         iw.MaxStock,
-        m.AvgPrice,
-        m.LastPurPrc,
-        (iw.OnHand * CASE WHEN m.AvgPrice > 0 THEN m.AvgPrice ELSE 0 END) AS InventoryValue,
         m.InvntryUom AS UOM,
         CASE
-          WHEN iw.OnHand < 0 THEN 'Negative'
-          WHEN iw.OnHand = 0 THEN 'Out of Stock'
-          WHEN iw.MinStock > 0 AND (iw.OnHand - iw.IsCommited) < iw.MinStock THEN 'Critical'
-          WHEN iw.MaxStock > 0 AND iw.OnHand > iw.MaxStock THEN 'Excess'
+          WHEN (iw.OnHand + iw.OnOrder - iw.IsCommited) < iw.IsCommited THEN 'Out of Stock'
+          WHEN (iw.OnHand + iw.OnOrder - iw.IsCommited) > iw.IsCommited AND iw.IsCommited > 0 THEN 'Excess'
           ELSE 'Normal'
         END AS StockStatus
       FROM LDS_LIVE.dbo.OITW iw
@@ -250,8 +265,7 @@ async function getWarehouseSummary(req, res) {
         ISNULL(SUM(iw.OnHand), 0) AS TotalOnHand,
         ISNULL(SUM(iw.IsCommited), 0) AS TotalCommitted,
         ISNULL(SUM(iw.OnOrder), 0) AS TotalOnOrder,
-        ISNULL(SUM(iw.OnHand - iw.IsCommited), 0) AS TotalAvailable,
-        ISNULL(SUM(iw.OnHand * CASE WHEN m.AvgPrice > 0 THEN m.AvgPrice ELSE 0 END), 0) AS InventoryValue,
+        ISNULL(SUM(CASE WHEN (iw.OnHand + iw.OnOrder - iw.IsCommited) < 0 THEN 0 ELSE (iw.OnHand + iw.OnOrder - iw.IsCommited) END), 0) AS TotalAvailable,
         SUM(CASE WHEN iw.OnHand <= 0 THEN 1 ELSE 0 END) AS OutOfStockItems,
         SUM(CASE WHEN iw.MinStock > 0 AND (iw.OnHand - iw.IsCommited) < iw.MinStock THEN 1 ELSE 0 END) AS CriticalItems
       FROM LDS_LIVE.dbo.OITW iw
@@ -259,7 +273,7 @@ async function getWarehouseSummary(req, res) {
       LEFT JOIN LDS_LIVE.dbo.OWHS w ON iw.WhsCode = w.WhsCode
       WHERE iw.OnHand <> 0 OR iw.IsCommited <> 0 OR iw.OnOrder <> 0
       GROUP BY iw.WhsCode, w.WhsName
-      ORDER BY InventoryValue DESC
+      ORDER BY TotalOnHand DESC
     `;
     const result = await pool.request().query(query);
     return res.json({ success: true, data: result.recordset });
@@ -282,14 +296,13 @@ async function getItemGroupSummary(req, res) {
         COUNT(DISTINCT iw.ItemCode) AS TotalSKUs,
         ISNULL(SUM(iw.OnHand), 0) AS TotalOnHand,
         ISNULL(SUM(iw.IsCommited), 0) AS TotalCommitted,
-        ISNULL(SUM(iw.OnHand - iw.IsCommited), 0) AS TotalAvailable,
-        ISNULL(SUM(iw.OnHand * CASE WHEN m.AvgPrice > 0 THEN m.AvgPrice ELSE 0 END), 0) AS InventoryValue
+        ISNULL(SUM(iw.OnHand - iw.IsCommited), 0) AS TotalAvailable
       FROM LDS_LIVE.dbo.OITW iw
       INNER JOIN LDS_LIVE.dbo.OITM m ON iw.ItemCode = m.ItemCode
       LEFT JOIN LDS_LIVE.dbo.OITB g ON m.ItmsGrpCod = g.ItmsGrpCod
       WHERE iw.OnHand <> 0 OR iw.IsCommited <> 0
       GROUP BY g.ItmsGrpNam
-      ORDER BY InventoryValue DESC
+      ORDER BY TotalOnHand DESC
     `;
     const result = await pool.request().query(query);
     return res.json({ success: true, data: result.recordset });
@@ -339,8 +352,6 @@ async function getMovements(req, res) {
         n.TransType,
         n.InQty,
         n.OutQty,
-        n.Price,
-        n.TransValue,
         n.BASE_REF AS DocNumber
       FROM LDS_LIVE.dbo.OINM n
       LEFT JOIN LDS_LIVE.dbo.OITM m ON n.ItemCode = m.ItemCode
@@ -440,11 +451,21 @@ async function getBatches(req, res) {
     const pageSize = Math.min(safeInt(req.query.pageSize, 50), 200);
     const search = req.query.search || "";
     const expiryStatus = req.query.expiryStatus || null;
+    const expiryBucket = req.query.expiryBucket || null;
 
     let filters = "";
     if (search) filters += " AND (b.ItemCode LIKE @search OR b.DistNumber LIKE @search)";
     if (expiryStatus === "expired") filters += " AND b.ExpDate IS NOT NULL AND b.ExpDate < GETDATE()";
     else if (expiryStatus === "near") filters += " AND b.ExpDate IS NOT NULL AND b.ExpDate >= GETDATE() AND b.ExpDate <= DATEADD(DAY, 90, GETDATE())";
+
+    if (expiryBucket) {
+      if (expiryBucket === "Expired") filters += " AND b.ExpDate IS NOT NULL AND b.ExpDate < CAST(GETDATE() AS DATE)";
+      else if (expiryBucket === "0-30 Days") filters += " AND b.ExpDate IS NOT NULL AND b.ExpDate >= CAST(GETDATE() AS DATE) AND b.ExpDate <= DATEADD(DAY, 30, CAST(GETDATE() AS DATE))";
+      else if (expiryBucket === "31-60 Days") filters += " AND b.ExpDate IS NOT NULL AND b.ExpDate > DATEADD(DAY, 30, CAST(GETDATE() AS DATE)) AND b.ExpDate <= DATEADD(DAY, 60, CAST(GETDATE() AS DATE))";
+      else if (expiryBucket === "61-90 Days") filters += " AND b.ExpDate IS NOT NULL AND b.ExpDate > DATEADD(DAY, 60, CAST(GETDATE() AS DATE)) AND b.ExpDate <= DATEADD(DAY, 90, CAST(GETDATE() AS DATE))";
+      else if (expiryBucket === "91-180 Days") filters += " AND b.ExpDate IS NOT NULL AND b.ExpDate > DATEADD(DAY, 90, CAST(GETDATE() AS DATE)) AND b.ExpDate <= DATEADD(DAY, 180, CAST(GETDATE() AS DATE))";
+      else if (expiryBucket === "180+ Days") filters += " AND b.ExpDate IS NOT NULL AND b.ExpDate > DATEADD(DAY, 180, CAST(GETDATE() AS DATE))";
+    }
 
     const offset = (page - 1) * pageSize;
 
@@ -535,8 +556,6 @@ async function getPurchasePipeline(req, res) {
         l.Quantity AS OrderedQty,
         (l.Quantity - l.OpenQty) AS ReceivedQty,
         l.OpenQty,
-        l.Price,
-        (l.OpenQty * l.Price) AS OpenValue,
         l.ShipDate AS ExpectedDelivery,
         DATEDIFF(DAY, GETDATE(), l.ShipDate) AS DaysUntilDelivery
       FROM LDS_LIVE.dbo.OPOR h
@@ -600,7 +619,6 @@ async function getCommitments(req, res) {
         l.Quantity AS OrderedQty,
         (l.Quantity - l.OpenQty) AS DeliveredQty,
         l.OpenQty,
-        l.Price,
         l.ShipDate AS RequiredDate,
         DATEDIFF(DAY, GETDATE(), l.ShipDate) AS DaysUntilDue
       FROM LDS_LIVE.dbo.ORDR h
@@ -734,9 +752,7 @@ async function getItemDetail(req, res) {
         m.U_cat1 AS Category, m.U_Division AS Division,
         m.InvntryUom AS UOM, m.OnHand, m.IsCommited AS Committed, m.OnOrder,
         (m.OnHand - m.IsCommited) AS Available,
-        (m.OnHand + m.OnOrder - m.IsCommited) AS Projected,
-        m.AvgPrice, m.LastPurPrc,
-        (m.OnHand * CASE WHEN m.AvgPrice > 0 THEN m.AvgPrice ELSE 0 END) AS InventoryValue
+        (m.OnHand + m.OnOrder - m.IsCommited) AS Projected
       FROM LDS_LIVE.dbo.OITM m
       LEFT JOIN LDS_LIVE.dbo.OITB g ON m.ItmsGrpCod = g.ItmsGrpCod
       WHERE m.ItemCode = @itemCode
@@ -747,8 +763,7 @@ async function getItemDetail(req, res) {
       SELECT
         iw.WhsCode, w.WhsName,
         iw.OnHand, iw.IsCommited AS Committed, iw.OnOrder,
-        (iw.OnHand - iw.IsCommited) AS Available,
-        (iw.OnHand * CASE WHEN m.AvgPrice > 0 THEN m.AvgPrice ELSE 0 END) AS Value
+        (iw.OnHand - iw.IsCommited) AS Available
       FROM LDS_LIVE.dbo.OITW iw
       LEFT JOIN LDS_LIVE.dbo.OWHS w ON iw.WhsCode = w.WhsCode
       LEFT JOIN LDS_LIVE.dbo.OITM m ON iw.ItemCode = m.ItemCode
@@ -759,7 +774,7 @@ async function getItemDetail(req, res) {
     // Recent movements (last 20)
     const movementsQuery = `
       SELECT TOP 20
-        n.DocDate, n.Warehouse, n.TransType, n.InQty, n.OutQty, n.Price, n.TransValue, n.BASE_REF AS DocNumber
+        n.DocDate, n.Warehouse, n.TransType, n.InQty, n.OutQty, n.BASE_REF AS DocNumber
       FROM LDS_LIVE.dbo.OINM n
       WHERE n.ItemCode = @itemCode
       ORDER BY n.DocDate DESC, n.CreatedBy DESC
