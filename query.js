@@ -1,1 +1,0 @@
-require('dotenv').config(); const { poolPromise } = require('./src/database/connection'); poolPromise.then(pool => pool.request().query('SELECT TOP 5 ItemCode, DistNumber, ExpDate, U_QCDecision FROM LDS_LIVE.dbo.OBTN WHERE ItemCode IN (''FG000022'', ''FG000068'')').then(res => { console.log(res.recordset); process.exit(0); })).catch(err => { console.error(err); });
