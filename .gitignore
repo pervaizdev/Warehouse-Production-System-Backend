@@ -41,3 +41,5 @@ coverage/
 
 # Cache
 .cache/
+
+package-lock.json
